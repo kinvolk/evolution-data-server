@@ -29,18 +29,18 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#ifdef USE_DOT
+#ifdef USE_DOT_LOCKING
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #endif
 
-#ifdef USE_FCNTL
+#ifdef USE_FCNTL_LOCKING
 #include <fcntl.h>
 #include <unistd.h>
 #endif
 
-#ifdef USE_FLOCK
+#ifdef USE_FLOCK_LOCKING
 #include <sys/file.h>
 #endif
 
@@ -76,7 +76,7 @@ gint
 camel_lock_dot (const gchar *path,
                 GError **error)
 {
-#ifdef USE_DOT
+#ifdef USE_DOT_LOCKING
 	gchar *locktmp, *lock;
 	gsize lock_len = 0;
 	gsize locktmp_len = 0;
@@ -153,7 +153,7 @@ camel_lock_dot (const gchar *path,
 		_("Timed out trying to get lock file on %s.  "
 		"Try again later."), path);
 	return -1;
-#else /* !USE_DOT */
+#else /* !USE_DOT_LOCKING */
 	return 0;
 #endif
 }
@@ -167,7 +167,7 @@ camel_lock_dot (const gchar *path,
 void
 camel_unlock_dot (const gchar *path)
 {
-#ifdef USE_DOT
+#ifdef USE_DOT_LOCKING
 	gchar *lock;
 	gsize lock_len;
 
@@ -197,7 +197,7 @@ camel_lock_fcntl (gint fd,
                   CamelLockType type,
                   GError **error)
 {
-#ifdef USE_FCNTL
+#ifdef USE_FCNTL_LOCKING
 	struct flock lock;
 
 	d (printf ("fcntl locking %d\n", fd));
@@ -236,7 +236,7 @@ camel_lock_fcntl (gint fd,
 void
 camel_unlock_fcntl (gint fd)
 {
-#ifdef USE_FCNTL
+#ifdef USE_FCNTL_LOCKING
 	struct flock lock;
 
 	d (printf ("fcntl unlocking %d\n", fd));
@@ -265,7 +265,7 @@ camel_lock_flock (gint fd,
                   CamelLockType type,
                   GError **error)
 {
-#ifdef USE_FLOCK
+#ifdef USE_FLOCK_LOCKING
 	gint op;
 
 	d (printf ("flock locking %d\n", fd));
@@ -296,7 +296,7 @@ camel_lock_flock (gint fd,
 void
 camel_unlock_flock (gint fd)
 {
-#ifdef USE_FLOCK
+#ifdef USE_FLOCK_LOCKING
 	d (printf ("flock unlocking %d\n", fd));
 
 	CHECK_CALL (flock (fd, LOCK_UN));
