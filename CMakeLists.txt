@@ -119,7 +119,7 @@ include(CheckIncludeFile)
 include(PrintableOptions)
 
 add_printable_variable(LIB_SUFFIX "Library directory suffix, usually defined to '64' for x86_64 systems" "")
-add_printable_variable_custom(CMAKE_INSTALL_PREFIX)
+add_printable_variable_bare(CMAKE_INSTALL_PREFIX)
 add_printable_variable_path(INCLUDE_INSTALL_DIR "Install directory for header files, defaults to CMAKE_INSTALL_PREFIX/include" ${CMAKE_INSTALL_PREFIX}/include)
 add_printable_variable_path(LIB_INSTALL_DIR "Install directory for library files, defaults to CMAKE_INSTALL_PREFIX/lib{LIB_SUFFIX}" ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX})
 add_printable_variable_path(LIBEXEC_INSTALL_DIR "Install directory for library executable files, defaults to CMAKE_INSTALL_PREFIX/libexec" ${CMAKE_INSTALL_PREFIX}/libexec)

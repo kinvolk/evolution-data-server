@@ -13,7 +13,7 @@ include(CheckCSourceCompiles)
 include(PkgConfigEx)
 include(PrintableOptions)
 
-add_printable_variable(WITH_KRB5 "Location of Kerberos 5 install dir, defaults to ON to search for it" "ON")
+add_printable_variable_path(WITH_KRB5 "Location of Kerberos 5 install dir, defaults to ON to search for it" "ON")
 add_printable_variable_path(WITH_KRB5_INCLUDES "Location of Kerberos 5 headers" "")
 add_printable_variable_path(WITH_KRB5_LIBS "Location of Kerberos 5 libraries" "")
 
@@ -21,20 +21,32 @@ if(NOT WITH_KRB5)
 	return()
 endif(NOT WITH_KRB5)
 
-#pkg_check_modules(KRB5 krb5 krb5-gssapi)
+pkg_check_modules(KRB5 krb5 krb5-gssapi)
 
 if(KRB5_FOUND)
 	pkg_check_variable(KRB5_VENDOR krb5 vendor)
 
 	if(KRB5_VENDOR STREQUAL "MIT")
+		message(STATUS "Using MIT Kerberos 5 (found by pkg-config)")
+		set(WITH_KRB5 ON)
 		set(HAVE_MIT_KRB5 ON)
 		return()
 	endif(KRB5_VENDOR STREQUAL "MIT")
+
+	message(STATUS "Found Kerberos 5 with pkg-config, but unknown vendor '${KRB5_VENDOR}', continue with autodetection")
 endif()
 
-if("${WITH_KRB5}" STREQUAL "ON")
+string(LENGTH "${CMAKE_BINARY_DIR}" bindirlen)
+string(SUBSTRING "${WITH_KRB5}" 0 ${bindirlen} substr)
+string(TOUPPER "${WITH_KRB5}" optupper)
+
+if(("${optupper}" STREQUAL "ON") OR ("${substr}" STREQUAL "${CMAKE_BINARY_DIR}"))
 	set(WITH_KRB5 "/usr")
-endif("${WITH_KRB5}" STREQUAL "ON")
+endif(("${optupper}" STREQUAL "ON") OR ("${substr}" STREQUAL "${CMAKE_BINARY_DIR}"))
+
+unset(bindirlen)
+unset(substr)
+unset(optupper)
 
 set(mit_includes "${WITH_KRB5}/include")
 set(mit_libs "-lkrb5 -lk5crypto -lcom_err -lgssapi_krb5")
@@ -62,6 +74,7 @@ CHECK_C_SOURCE_COMPILES("#include <krb5/krb5.h>
 
 if(HAVE_KRB5)
 	set(HAVE_MIT_KRB5 ON)
+	message(STATUS "Found MIT Kerberos 5")
 else(HAVE_KRB5)
 	set(CMAKE_REQUIRED_INCLUDES "-I${heimdal_includes}")
 	set(CMAKE_REQUIRED_LIBRARIES "-L${krb_libs} ${heimdal_libs}")
@@ -70,6 +83,7 @@ else(HAVE_KRB5)
 
 	if(HAVE_KRB5)
 		set(HAVE_HEIMDAL_KRB5 ON)
+		message(STATUS "Found Heimdal Kerberos 5")
 	endif(HAVE_KRB5)
 endif(HAVE_KRB5)
 
@@ -78,6 +92,10 @@ if(NOT HAVE_KRB5)
 	set(CMAKE_REQUIRED_LIBRARIES "-L${krb_libs} ${sun_libs}")
 	CHECK_C_SOURCE_COMPILES("#include <krb5/krb5.h>
 				int main(void) { krb5_init_context (NULL); return 0; }" HAVE_KRB5)
+	if(HAVE_KRB5)
+		set(HAVE_SUN_KRB5 ON)
+		message(STATUS "Found Sun Kerberos 5")
+	endif(HAVE_KRB5)
 endif(NOT HAVE_KRB5)
 
 if(HAVE_KRB5)
