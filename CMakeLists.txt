@@ -133,6 +133,7 @@ include(SetupBuildFlags)
 include(UninstallTarget)
 
 include(FindKRB5)
+include(FindPhonenumber)
 include(FindSMIME)
 
 add_printable_option(ENABLE_MAINTAINER_MODE "Enable maintainer mode" OFF)

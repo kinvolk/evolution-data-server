@@ -6,7 +6,7 @@
 #    HAVE_KRB5 - set to ON, if Kerberos 5 support is enabled and libraries found
 #    HAVE_MIT_KRB5 - set to ON, when found MIT implementation
 #    HAVE_HEIMDAL_KRB5 - set to ON, when found Heimdal implementation
-#    KRB5_CFLAGS - CFLAGS to use with target_compile_options() and similarcomands
+#    KRB5_CFLAGS - CFLAGS to use with target_compile_options() and similar commands
 #    KRB5_LDFLAGS - LDFLAGS to use with target_link_libraries() and similar commands
 
 include(CheckCSourceCompiles)

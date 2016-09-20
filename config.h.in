@@ -141,6 +141,12 @@
 /* Define if you have Sun Kerberosv5 */
 #cmakedefine HAVE_SUN_KRB5 1
 
+/* Enable libphonenumber parsing */
+#cmakedefine ENABLE_PHONENUMBER 1
+
+/* Whether Parse() or ParseAndKeepRawInput() must be used to get the country-code source */
+#cmakedefine PHONENUMBER_RAW_INPUT_NEEDED 1
+
 /* *************************************************** */
 
 
@@ -155,9 +161,6 @@
 
 /* Define to 1 if using `alloca.c'. */
 /* #undef C_ALLOCA */
-
-/* Enable phonenumber parsing */
-/* #undef ENABLE_PHONENUMBER */
 
 /* Solaris-style gethostbyaddr_r */
 /* #undef GETHOSTBYADDR_R_SEVEN_ARGS */
@@ -294,10 +297,6 @@
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "3.22.0"
-
-/* Whether Parse() or ParseAndKeepRawInput() must be used to get the
-   country-code source */
-/* #undef PHONENUMBER_RAW_INPUT_NEEDED */
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
