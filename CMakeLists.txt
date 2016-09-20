@@ -133,6 +133,7 @@ include(SetupBuildFlags)
 include(UninstallTarget)
 
 include(FindKRB5)
+include(FindLDAP)
 include(FindPhonenumber)
 include(FindSMIME)
 
@@ -140,12 +141,6 @@ add_printable_option(ENABLE_MAINTAINER_MODE "Enable maintainer mode" OFF)
 
 # Setup compiler/linker flags
 setup_build_flags(${ENABLE_MAINTAINER_MODE})
-
-check_c_compiler_flag(-fno-strict-aliasing _flag_supported)
-if(_flag_supported)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing")
-endif(_flag_supported)
-unset(_flag_supported)
 
 CHECK_INCLUDE_FILE(sys/wait.h HAVE_SYS_WAIT_H)
 CHECK_INCLUDE_FILE(wspiapi.h HAVE_WSPIAPI_H)

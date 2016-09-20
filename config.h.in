@@ -147,6 +147,13 @@
 /* Whether Parse() or ParseAndKeepRawInput() must be used to get the country-code source */
 #cmakedefine PHONENUMBER_RAW_INPUT_NEEDED 1
 
+/* Define if you have LDAP support */
+#cmakedefine HAVE_LDAP 1
+
+/* Define if you use SunLDAP */
+#cmakedefine SUNLDAP */
+
+
 /* *************************************************** */
 
 
@@ -201,9 +208,6 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
-
-/* Define if you have LDAP support */
-#define HAVE_LDAP 1
 
 /* Define if compiled with libical 2.0 */
 #define HAVE_LIBICAL_2_0 1
@@ -308,9 +312,6 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
-
-/* Define if you use SunLDAP */
-/* #undef SUNLDAP */
 
 /* Version number of package */
 #define VERSION "3.22.0"

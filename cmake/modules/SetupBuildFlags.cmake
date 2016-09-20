@@ -19,6 +19,7 @@ function(setup_build_flags _maintainer_mode)
 		-Wundef
 		-Wwrite-strings
 		-no-undefined
+		-fno-strict-aliasing
 	)
 
 	if(_maintainer_mode)
@@ -54,19 +55,19 @@ function(setup_build_flags _maintainer_mode)
 	)
 
 	foreach(flag IN LISTS proposed_c_flags)
-		check_c_compiler_flag(${flag} _flag_supported)
-		if(_flag_supported)
+		check_c_compiler_flag(${flag} c_flag_${flag}_supported)
+		if(c_flag_${flag}_supported)
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
-		endif(_flag_supported)
-		unset(_flag_supported)
+		endif(c_flag_${flag}_supported)
+		unset(c_flag_${flag}_supported)
 	endforeach()
 
 	foreach(flag IN LISTS proposed_cxx_flags)
-		check_cxx_compiler_flag(${flag} _flag_supported)
-		if(_flag_supported)
+		check_cxx_compiler_flag(${flag} cxx_flag_${flag}_supported)
+		if(cxx_flag_${flag}_supported)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
-		endif(_flag_supported)
-		unset(_flag_supported)
+		endif(cxx_flag_${flag}_supported)
+		unset(cxx_flag_${flag}_supported)
 	endforeach()
 
 	if(("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "gcc"))
