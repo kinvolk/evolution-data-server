@@ -6,6 +6,7 @@ cmake_policy(VERSION 3.0)
 project(evolution-data-server
 	VERSION 3.23.1
 	LANGUAGES C CXX)
+set(PROJECT_BUGREPORT "http://bugzilla.gnome.org/enter_bug.cgi?product=Evolution-Data-Server")
 
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
@@ -114,17 +115,90 @@ include(CheckCSourceCompiles)
 include(CheckCSourceRuns)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
+include(CheckLibraryExists)
 
 # Project custom modules
 include(PrintableOptions)
 
 add_printable_variable(LIB_SUFFIX "Library directory suffix, usually defined to '64' for x86_64 systems" "")
 add_printable_variable_bare(CMAKE_INSTALL_PREFIX)
-add_printable_variable_path(INCLUDE_INSTALL_DIR "Install directory for header files, defaults to CMAKE_INSTALL_PREFIX/include" ${CMAKE_INSTALL_PREFIX}/include)
-add_printable_variable_path(LIB_INSTALL_DIR "Install directory for library files, defaults to CMAKE_INSTALL_PREFIX/lib{LIB_SUFFIX}" ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX})
-add_printable_variable_path(LIBEXEC_INSTALL_DIR "Install directory for library executable files, defaults to CMAKE_INSTALL_PREFIX/libexec" ${CMAKE_INSTALL_PREFIX}/libexec)
-add_printable_variable_path(SHARE_INSTALL_PREFIX "Install directory for shared files, defaults to CMAKE_INSTALL_PREFIX/share" ${CMAKE_INSTALL_PREFIX}/share)
-add_printable_variable_path(SYSCONF_INSTALL_DIR "Install directory for system configuration files, defaults to CMAKE_INSTALL_PREFIX/etc" ${CMAKE_INSTALL_PREFIX}/etc)
+add_printable_variable_path(BIN_INSTALL_DIR "Install directory for binary files, defaults to CMAKE_INSTALL_PREFIX/bin" "${CMAKE_INSTALL_PREFIX}/bin")
+add_printable_variable_path(INCLUDE_INSTALL_DIR "Install directory for header files, defaults to CMAKE_INSTALL_PREFIX/include" "${CMAKE_INSTALL_PREFIX}/include")
+add_printable_variable_path(LIB_INSTALL_DIR "Install directory for library files, defaults to CMAKE_INSTALL_PREFIX/lib{LIB_SUFFIX}" "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
+add_printable_variable_path(LIBEXEC_INSTALL_DIR "Install directory for library executable files, defaults to CMAKE_INSTALL_PREFIX/libexec" "${CMAKE_INSTALL_PREFIX}/libexec")
+add_printable_variable_path(SHARE_INSTALL_PREFIX "Install directory for shared files, defaults to CMAKE_INSTALL_PREFIX/share" "${CMAKE_INSTALL_PREFIX}/share")
+add_printable_variable_path(SYSCONF_INSTALL_DIR "Install directory for system configuration files, defaults to CMAKE_INSTALL_PREFIX/etc" "${CMAKE_INSTALL_PREFIX}/etc")
+
+# ******************************
+# Special directories
+# ******************************
+
+# If you add something here, consider whether or not you also
+# need to add it to one or more .pc.in files (for Connector, etc)
+
+set(privdatadir "${SHARE_INSTALL_PREFIX}/${PROJECT_NAME}")
+set(privincludedir "${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}")
+set(privlibdir "${LIB_INSTALL_DIR}/${PROJECT_NAME}")
+set(privlibexecdir "${LIBEXEC_INSTALL_DIR}'/${PROJECT_NAME}")
+
+if(WIN32)
+	# On Win32 there is no "rpath" mechanism. We install the private
+	# shared libraries in $libdir, meaning the DLLs will actually be in
+	# $bindir. This means just having $bindir in PATH will be enough.
+	set(privsolibdir "${LIB_INSTALL_DIR}")
+else(WIN32)
+	set(privsolibdir "${privlibdir}")
+endif(WIN32)
+
+set(imagesdir "${SHARE_INSTALL_PREFIX}/pixmaps/${PROJECT_NAME}")
+set(moduledir "${privlibdir}/registry-modules")
+set(credentialmoduledir "${privlibdir}/credential-modules")
+set(ebook_backenddir "${privlibdir}/addressbook-backends")
+set(ecal_backenddir "${privlibdir}/calendar-backends")
+set(ro_sourcesdir "${privdatadir}/ro-sources")
+set(rw_sourcesdir "${privdatadir}/rw-sources")
+set(weatherdatadir "${privdatadir}/weather")
+set(camel_providerdir "${privlibdir}/camel-providers")
+
+# *******************
+# D-BUS service stuff
+# *******************
+set(servicelibexecdir "${LIBEXEC_INSTALL_DIR}")
+if(WIN32 AND (NOT ("$ENV{WIN32_SERVICELIBEXECDIR}" STREQUAL "")))
+	#
+	# D-Bus requires Windows full path, not Unix-like, like the one provided by MSYS
+	#
+	AC_SUBST(WIN32_SERVICELIBEXECDIR)
+	set(servicelibexecdir "$ENV{WIN32_SERVICELIBEXECDIR}")
+endif(WIN32 AND (NOT ("$ENV{WIN32_SERVICELIBEXECDIR}" STREQUAL "")))
+
+add_printable_variable_path(WITH_DBUS_SERVICE_DIR "Set directory for D-Bus service files" "${SHARE_INSTALL_PREFIX}/dbus-1/services")
+
+# It is correct for this to be in ${CMAKE_INSTALL_PREFIX}/lib, even on systems where that
+# does not match ${LIB_INSTALL_DIR}. This is what systemd uses on such platforms.
+
+add_printable_variable_path(WITH_SYSTEMDUSERUNITDIR "Set directory for systemd user units, or 'no' to disable" "${CMAKE_INSTALL_PREFIX}/lib/systemd/user")
+
+string(LENGTH "${CMAKE_BINARY_DIR}" bindirlen)
+string(SUBSTRING "${WITH_SYSTEMDUSERUNITDIR}" 0 ${bindirlen} substr)
+string(TOUPPER "${WITH_SYSTEMDUSERUNITDIR}" optupper)
+
+if(("${optupper}" STREQUAL "ON") OR ("${substr}" STREQUAL "${CMAKE_BINARY_DIR}"))
+	set(WITH_SYSTEMD_USER_UNITS ON)
+	set(WITH_SYSTEMDUSERUNITDIR "${CMAKE_INSTALL_PREFIX}/lib/systemd/user")
+elseif(NOT WITH_SYSTEMDUSERUNITDIR)
+	set(WITH_SYSTEMD_USER_UNITS OFF)
+else()
+	set(WITH_SYSTEMD_USER_UNITS ON)
+endif()
+
+unset(bindirlen)
+unset(substr)
+unset(optupper)
+
+# ******************************
+# Dependencies
+# ******************************
 
 include(CodeCoverageGCOV)
 include(DistTarget)
@@ -142,11 +216,36 @@ add_printable_option(ENABLE_MAINTAINER_MODE "Enable maintainer mode" OFF)
 # Setup compiler/linker flags
 setup_build_flags(${ENABLE_MAINTAINER_MODE})
 
+CHECK_INCLUDE_FILE(com_err.h HAVE_COM_ERR_H)
+CHECK_INCLUDE_FILE(et/com_err.h HAVE_ET_COM_ERR_H)
 CHECK_INCLUDE_FILE(sys/wait.h HAVE_SYS_WAIT_H)
 CHECK_INCLUDE_FILE(wspiapi.h HAVE_WSPIAPI_H)
+CHECK_INCLUDE_FILE(zlib.h HAVE_ZLIB_H)
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strptime HAVE_STRPTIME)
 CHECK_FUNCTION_EXISTS(nl_langinfo HAVE_NL_LANGINFO)
+CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
+
+# ******************************
+# gperf executable
+# ******************************
+
+find_program(GPERF gperf)
+if(NOT GPERF)
+	message(FATAL_ERROR "You need gperf to build ${PROJECT_NAME}")
+endif(NOT GPERF)
+
+# ******************************
+# deflateInit is a #define, use deflateEnd instead
+# ******************************
+CHECK_LIBRARY_EXISTS(z deflateEnd "" deflateEnd_exists)
+
+if(NOT HAVE_ZLIB_H)
+	message(FATAL_ERROR "zlib.h not found")
+endif(NOT HAVE_ZLIB_H)
+if(NOT deflateEnd_exists)
+	message(FATAL_ERROR "zlib doesn't provide deflateEnd")
+endif(NOT deflateEnd_exists)
 
 pkg_check_modules(GNOME_PLATFORM
 	gio-2.0>=${glib_minimum_version}
@@ -160,10 +259,6 @@ if(WIN32)
 else(WIN32)
 	pkg_check_modules(GIO_UNIX gio-unix-2.0)
 endif(WIN32)
-
-# ******************************
-# Check for libphonenumber
-# ******************************
 
 # *******************
 # Check for ICU
@@ -571,13 +666,142 @@ endif(NOT WIN32)
 # ******************************
 
 set(defval OFF)
-if(CMAKE_SYSTEM_NAME STREQUAL "SunOs")
+if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
 	set(defval ON)
-endif(CMAKE_SYSTEM_NAME STREQUAL "SunOs")
+endif(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
 
 add_printable_option(ENABLE_BROKEN_SPOOL "Use SunOS/Solaris sendmail which has a broken spool format" ${defval})
 
 unset(defval)
+
+# ******************************
+# sqlite3 flags
+# ******************************
+pkg_check_modules(SQLITE3 sqlite3>=${sqlite_minimum_version})
+
+# ******************************
+# Google flags
+# ******************************
+
+add_printable_option(ENABLE_GOOGLE "Enable Google support" ON)
+if(ENABLE_GOOGLE)
+	pkg_check_modules_for_option(ENABLE_GOOGLE "Google" LIBGDATA libgdata>=${libgdata_minimum_version})
+	set(HAVE_LIBGDATA ON)
+endif(ENABLE_GOOGLE)
+
+# ******************************
+# Checks for large file support
+# ******************************
+
+add_printable_option(ENABLE_LARGEFILE "Enable support for large files" ON)
+
+if(ENABLE_LARGEFILE)
+	CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
+
+	if(HAVE_UNISTD_H)
+		set(CMAKE_REQUIRED_FLAGS "-DHAVE_UNISTD_H")
+	endif(HAVE_UNISTD_H)
+
+	CHECK_C_SOURCE_COMPILES("#ifdef HAVE_UNISTD_H
+			#include <unistd.h>
+			#endif
+			int main(void) {
+				off64_t x1;
+				return 0;
+			}" have_off64_t_bare)
+	if(NOT have_off64_t_bare)
+		CHECK_C_SOURCE_COMPILES("#define _LARGEFILE64_SOURCE
+				#ifdef HAVE_UNISTD_H
+				#include <unistd.h>
+				#endif
+				int main(void) {
+					off64_t x1;
+					return 0;
+				}" have_off64_t_with_largefile64_source)
+	endif(NOT have_off64_t_bare)
+
+	CHECK_C_SOURCE_COMPILES("#include <sys/types.h>
+			#include <sys/stat.h>
+			#include <fcntl.h>
+			int main(void) {
+				int fd = open (\"__o_largefile\", O_CREAT | O_RDWR | O_LARGEFILE, 0644);
+				return 0;
+			}" have_o_largefile_bare)
+	if(NOT have_o_largefile_bare)
+		CHECK_C_SOURCE_COMPILES("#define _LARGEFILE64_SOURCE
+				#include <sys/types.h>
+				#include <sys/stat.h>
+				#include <fcntl.h>
+				int main(void) {
+					int fd = open (\"__o_largefile\", O_CREAT | O_RDWR | O_LARGEFILE, 0644);
+					return 0;
+				}" have_o_largefile_with_largefile64_source)
+	endif(NOT have_o_largefile_bare)
+
+	set(HAVE_O_LARGEFILE ON)
+	if(have_o_largefile_with_largefile64_source)
+		add_definitions(-D_LARGEFILE64_SOURCE=1)
+	elseif(NOT have_o_largefile_bare)
+		set(HAVE_O_LARGEFILE OFF)
+	endif()
+	unset(CMAKE_REQUIRED_FLAGS)
+else(ENABLE_LARGEFILE)
+	set(HAVE_O_LARGEFILE OFF)
+endif(ENABLE_LARGEFILE)
+
+# ******************************
+# subparts flags
+# ******************************
+
+pkg_check_modules(SOUP libsoup-2.4)
+pkg_check_modules(DATA_SERVER gio-2.0 gmodule-2.0 libsecret-1 libxml-2.0 libsoup-2.4 ${mozilla_nspr} ${mozilla_nss})
+set(E_DATA_SERVER_INCLUDES ${E_DATA_SERVER_INCLUDES} ${MANUAL_NSPR_INCLUDES} ${MANUAL_NSS_INCLUDES})
+set(E_DATA_SERVER_LDFLAGS ${E_DATA_SERVER_LDFLAGS} ${MANUAL_NSPR_LIBS} ${MANUAL_NSS_LIBS})
+
+pkg_check_modules(BACKEND gio-2.0 gmodule-2.0 libsecret-1 libsoup-2.4 libxml-2.0)
+pkg_check_modules(ADDRESSBOOK gio-2.0 libxml-2.0 libsoup-2.4 libsecret-1)
+pkg_check_modules(CALENDAR gio-2.0 libical>=${libical_minimum_version} libsoup-2.4 libxml-2.0 libsecret-1)
+set(CALENDAR_CFLAGS "${CALENDAR_CFLAGS} ${LIBICAL_EXTRA_CFLAGS}")
+
+pkg_check_modules(CAMEL gio-2.0 gmodule-2.0 ${mozilla_nss} ${mozilla_nspr} sqlite3>=${sqlite_minimum_version})
+set(CAMEL_CFLAGS "${CAMEL_CFLAGS} ${KRB5_CFLAGS} ${MANUAL_NSS_CFLAGS} ${MANUAL_NSPR_CFLAGS} ${ICU_CFLAGS}")
+set(CAMEL_LDFLAGS "${CAMEL_LDFLAGS} -lz ${KRB5_LDFLAGS} ${MANUAL_NSS_LIBS} ${MANUAL_NSPR_LIBS} ${ICU_LIBS}")
+
+# ******************************
+# libical tweaks
+# ******************************
+
+pkg_check_at_least_version(HAVE_LIBICAL_2_0 libical 2.0)
+
+# *****
+# libical.pc from libical-0.43 has a bug in its CFlags.
+# It wants apps to include <libical/ical*.h> but it's CFlags make it difficult
+# to differentiate between <libical/ical.h> and <ical.h>
+# We have fixed all our instances to use <libical/ical.h>.
+# Work-around the buggy CFlags for the 0.43 version.
+# *****
+pkg_check_exact_version(libical_is_0_43 libical 0.43)
+if(libical_is_0_43)
+	pkg_check_variable(LIBICAL_EXTRA_CFLAGS libical includedir)
+endif(libical_is_0_43)
+
+set(CMAKE_REQUIRED_FLAGS "${CALENDAR_CFLAGS}")
+set(CMAKE_REQUIRED_LIBRARIES "${CALENDAR_LDFLAGS}")
+
+CHECK_C_SOURCE_COMPILES("#include <libical/ical.h>
+			int main(void) {
+				ical_set_unknown_token_handling_setting (ICAL_DISCARD_TOKEN);
+				return 0;
+			}" HAVE_ICAL_UNKNOWN_TOKEN_HANDLING)
+
+CHECK_C_SOURCE_COMPILES("#include <libical/ical.h>
+			int main(void) {
+				icaltzutil_set_exact_vtimezones_support (0);
+				return 0;
+			}" HAVE_ICALTZUTIL_SET_EXACT_VTIMEZONES_SUPPORT)
+
+unset(CMAKE_REQUIRED_FLAGS)
+unset(CMAKE_REQUIRED_LIBRARIES)
 
 # Generate the config.h file
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)

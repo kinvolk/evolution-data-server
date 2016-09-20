@@ -11,6 +11,14 @@
 #
 #    calls pkg-config --exists for _pkg and stores the result to _output_name.
 #
+# pkg_check_at_least_version(_output_name _pkg _version)
+#
+#    calls pkg-config --at-least-version=_version for _pkg and stores the result to _output_name.
+#
+# pkg_check_exact_version(_output_name _pkg _version)
+#
+#    calls pkg-config --exact-version=_version for _pkg and stores the result to _output_name.
+#
 # pkg_check_variable(_output_name _pkg _name)
 #
 #    gets a variable named _name from package _pkg and stores the result into _output_name
@@ -27,6 +35,30 @@ endmacro()
 
 macro(pkg_check_exists _output_name _pkg)
 	execute_process(COMMAND ${PKG_CONFIG_EXECUTABLE} --exists ${_pkg}
+			RESULT_VARIABLE ${_output_name})
+
+	# Negate the result, because 0 means 'found'
+	if(${_output_name})
+		set(${_output_name} OFF)
+	else(${_output_name})
+		set(${_output_name} ON)
+	endif(${_output_name})
+endmacro()
+
+macro(pkg_check_at_least_version _output_name _pkg _version)
+	execute_process(COMMAND ${PKG_CONFIG_EXECUTABLE} --atleast-version=${_version} ${_pkg}
+			RESULT_VARIABLE ${_output_name})
+
+	# Negate the result, because 0 means 'found'
+	if(${_output_name})
+		set(${_output_name} OFF)
+	else(${_output_name})
+		set(${_output_name} ON)
+	endif(${_output_name})
+endmacro()
+
+macro(pkg_check_exact_version _output_name _pkg _version)
+	execute_process(COMMAND ${PKG_CONFIG_EXECUTABLE} --exact-version=${_version} ${_pkg}
 			RESULT_VARIABLE ${_output_name})
 
 	# Negate the result, because 0 means 'found'

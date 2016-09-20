@@ -20,7 +20,7 @@
 
 #include <libebackend/libebackend.h>
 
-#ifdef HAVE_GOOGLE
+#ifdef HAVE_LIBGDATA
 #include <gdata/gdata.h>
 #endif
 
