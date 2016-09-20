@@ -129,7 +129,7 @@ add_printable_variable_path(SYSCONF_INSTALL_DIR "Install directory for system co
 include(CodeCoverageGCOV)
 include(DistTarget)
 include(PkgConfigEx)
-include(SetupCompilerWarningFlags)
+include(SetupBuildFlags)
 include(UninstallTarget)
 
 include(FindKRB5)
@@ -137,8 +137,8 @@ include(FindSMIME)
 
 add_printable_option(ENABLE_MAINTAINER_MODE "Enable maintainer mode" OFF)
 
-# Compiler warning flags
-setup_compiler_warning_flags(${ENABLE_MAINTAINER_MODE})
+# Setup compiler/linker flags
+setup_build_flags(${ENABLE_MAINTAINER_MODE})
 
 check_c_compiler_flag(-fno-strict-aliasing _flag_supported)
 if(_flag_supported)

@@ -1,12 +1,12 @@
-# SetupCompilerWarningFlags.cmake
+# SetupBuildFlags.cmake
 #
-# Setups compiler warning flags, skipping those which are not supported.
+# Setups compiler/linker flags, skipping those which are not supported.
 
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
-function(setup_compiler_warning_flags _maintainer_mode)
-	list(APPEND proposed_warning_flags
+function(setup_build_flags _maintainer_mode)
+	list(APPEND proposed_flags
 		-Werror-implicit-function-declaration
 		-Wformat
 		-Wformat-security
@@ -18,20 +18,21 @@ function(setup_compiler_warning_flags _maintainer_mode)
 		-Wredundant-decls
 		-Wundef
 		-Wwrite-strings
+		-no-undefined
 	)
 
 	if(_maintainer_mode)
-		list(APPEND proposed_warning_flags
+		list(APPEND proposed_flags
 			-Wall
 			-Wextra
 			-Wdeprecated-declarations
 		)
 	else(_maintainer_mode)
-		list(APPEND proposed_warning_flags -Wno-deprecated-declarations)
+		list(APPEND proposed_flags -Wno-deprecated-declarations)
 	endif(_maintainer_mode)
 
-	list(APPEND proposed_c_warning_flags
-		${proposed_warning_flags}
+	list(APPEND proposed_c_flags
+		${proposed_flags}
 		-Wdeclaration-after-statement
 		-Wno-missing-field-initializers
 		-Wno-sign-compare
@@ -40,19 +41,19 @@ function(setup_compiler_warning_flags _maintainer_mode)
 	)
 
 	if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-		list(APPEND proposed_c_warning_flags
+		list(APPEND proposed_c_flags
 			-Wno-parentheses-equality
 			-Wno-format-nonliteral
 		)
 	endif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
-	list(APPEND proposed_cxx_warning_flags
-		${proposed_warning_flags}
+	list(APPEND proposed_cxx_flags
+		${proposed_flags}
 		-Wabi
 		-Wnoexcept
 	)
 
-	foreach(flag IN LISTS proposed_c_warning_flags)
+	foreach(flag IN LISTS proposed_c_flags)
 		check_c_compiler_flag(${flag} _flag_supported)
 		if(_flag_supported)
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
@@ -60,11 +61,18 @@ function(setup_compiler_warning_flags _maintainer_mode)
 		unset(_flag_supported)
 	endforeach()
 
-	foreach(flag IN LISTS proposed_cxx_warning_flags)
+	foreach(flag IN LISTS proposed_cxx_flags)
 		check_cxx_compiler_flag(${flag} _flag_supported)
 		if(_flag_supported)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
 		endif(_flag_supported)
 		unset(_flag_supported)
 	endforeach()
+
+	if(("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "gcc"))
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-undefined")
+		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--no-undefined")
+		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+		set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -Wl,--no-undefined")
+	endif(("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "gcc"))
 endfunction()
