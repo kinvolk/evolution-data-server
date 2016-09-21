@@ -109,6 +109,8 @@ set(webkit2gtk_minimum_version 2.11.91)
 # Load modules from the source tree
 set(CMAKE_MODULE_PATH $CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # CMake modules
 include(CheckCCompilerFlag)
 include(CheckCSourceCompiles)
@@ -850,3 +852,5 @@ add_definitions(-DHAVE_CONFIG_H=1)
 print_build_options()
 
 add_subdirectory(camel)
+add_subdirectory(private)
+add_subdirectory(libedataserver)

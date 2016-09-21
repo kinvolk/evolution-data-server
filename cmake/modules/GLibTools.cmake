@@ -3,6 +3,7 @@
 # Provides functions to run glib tools.
 #
 # Functions:
+#
 # glib_mkenums(_output_filename_noext _enums_header _define_name)
 #    runs glib-mkenums to generate enumtypes .h and .c files from _enums_header.
 #    It searches for files in the current source directory and exports to the current
@@ -13,6 +14,22 @@
 #        which uses camel-enums.h as the source of known enums and generates
 #        camel-enumtypes.h which will use the CAMEL_ENUMTYPES_H define
 #        and also generates camel-enumtypes.c with the needed code.
+#
+# gdbus_codegen(_xml _interface_prefix _c_namespace _files_prefix _list_gens)
+#    runs gdbus-codegen to generate GDBus code from _xml file description,
+#    using _interface_prefix, _c_namespace and _files_prefix as arguments.
+#    The _list_gens is a list variable are stored expected generated files.
+#
+#    An example call is:
+#        set(GENERATED_DBUS_LOCALE
+#               e-dbus-localed.c
+#	        e-dbus-localed.h
+#        )
+#        gdbus_codegen(org.freedesktop.locale1.xml org.freedesktop. E_DBus e-dbus-localed GENERATED_DBUS_LOCALE)
+#
+# gdbus_codegen_custom(_xml _interface_prefix _c_namespace _files_prefix _list_gens _args)
+#    The same as gdbus_codegen() except allows to pass other arguments to the call,
+#    like for example --c-generate-object-manager
 
 find_program(GLIB_MKENUMS glib-mkenums)
 if(NOT GLIB_MKENUMS)
@@ -48,11 +65,11 @@ G_END_DECLS
 #endif /* ${_define_name} */
 /*** END file-tail ***/")
 
-	file(WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes.h.template" "${HEADER_TMPL}\n")
+	file(WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes-${_output_filename_noext}.h.tmpl" "${HEADER_TMPL}\n")
 
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.h
-		COMMAND ${GLIB_MKENUMS} --template "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes.h.template" "${CMAKE_CURRENT_SOURCE_DIR}/${_enums_header}" >${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.h
+		COMMAND ${GLIB_MKENUMS} --template "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes-${_output_filename_noext}.h.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/${_enums_header}" >${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.h
 	)
 
 set(SOURCE_TMPL "
@@ -95,10 +112,34 @@ GType
 
 /*** END value-tail ***/")
 
-	file(WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes.c.template" "${SOURCE_TMPL}\n")
+	file(WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes-${_output_filename_noext}.c.tmpl" "${SOURCE_TMPL}\n")
 
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c
-		COMMAND ${GLIB_MKENUMS} --template "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes.c.template" "${CMAKE_CURRENT_SOURCE_DIR}/${_enums_header}" >${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c
+		COMMAND ${GLIB_MKENUMS} --template "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/enumtypes-${_output_filename_noext}.c.tmpl" "${CMAKE_CURRENT_SOURCE_DIR}/${_enums_header}" >${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c
 	)
-endfunction()
+endfunction(glib_mkenums)
+
+
+find_program(GDBUS_CODEGEN gdbus-codegen)
+if(NOT GDBUS_CODEGEN)
+	message(FATAL_ERROR "Cannot find gdbus-codegen, which is required to build ${PROJECT_NAME}")
+endif(NOT GDBUS_CODEGEN)
+
+function(gdbus_codegen_custom _xml _interface_prefix _c_namespace _files_prefix _list_gens _args)
+	add_custom_command(
+		OUTPUT ${${_list_gens}}
+		COMMAND ${GDBUS_CODEGEN}
+		ARGS --interface-prefix ${_interface_prefix}
+			--c-namespace ${_c_namespace}
+			--generate-c-code ${_files_prefix}
+			--generate-docbook ${_files_prefix}
+			${_args}
+			${CMAKE_CURRENT_SOURCE_DIR}/${_xml}
+		VERBATIM
+	)
+endfunction(gdbus_codegen_custom)
+
+function(gdbus_codegen _xml _interface_prefix _c_namespace _files_prefix _list_gens)
+	gdbus_codegen_custom(${_xml} ${_interface_prefix} ${_c_namespace} ${_files_prefix} ${_list_gens} "")
+endfunction(gdbus_codegen)

@@ -5,7 +5,8 @@
 #
 # What you do is to call command:
 # add_check_test(_name)
-#   where _name is the name of the test, as defined by add_executable()
+#   where _name is the name of the test, as defined by add_executable().
+#   Note it is a good idea to use EXCLUDE_FROM_ALL within the add_executable().
 
 include(CTest)
 
