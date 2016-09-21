@@ -127,6 +127,7 @@ add_printable_variable_path(INCLUDE_INSTALL_DIR "Install directory for header fi
 add_printable_variable_path(LIB_INSTALL_DIR "Install directory for library files, defaults to CMAKE_INSTALL_PREFIX/lib{LIB_SUFFIX}" "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
 add_printable_variable_path(LIBEXEC_INSTALL_DIR "Install directory for library executable files, defaults to CMAKE_INSTALL_PREFIX/libexec" "${CMAKE_INSTALL_PREFIX}/libexec")
 add_printable_variable_path(SHARE_INSTALL_PREFIX "Install directory for shared files, defaults to CMAKE_INSTALL_PREFIX/share" "${CMAKE_INSTALL_PREFIX}/share")
+add_printable_variable_path(LOCALE_INSTALL_PREFIX "Install directory for locale files, defaults to SHARE_INSTALL_PREFIX/locale" "${SHARE_INSTALL_PREFIX}/locale")
 add_printable_variable_path(SYSCONF_INSTALL_DIR "Install directory for system configuration files, defaults to CMAKE_INSTALL_PREFIX/etc" "${CMAKE_INSTALL_PREFIX}/etc")
 
 # ******************************
@@ -202,6 +203,7 @@ unset(optupper)
 
 include(CodeCoverageGCOV)
 include(DistTarget)
+include(GLibTools)
 include(PkgConfigEx)
 include(SetupBuildFlags)
 include(UninstallTarget)
@@ -227,7 +229,7 @@ CHECK_FUNCTION_EXISTS(nl_langinfo HAVE_NL_LANGINFO)
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 
 # ******************************
-# gperf executable
+# required executables
 # ******************************
 
 find_program(GPERF gperf)
@@ -235,9 +237,15 @@ if(NOT GPERF)
 	message(FATAL_ERROR "You need gperf to build ${PROJECT_NAME}")
 endif(NOT GPERF)
 
+find_program(PERL perl)
+if(NOT PERL)
+	message(FATAL_ERROR "You need perl to build ${PROJECT_NAME}")
+endif(NOT PERL)
+
 # ******************************
 # deflateInit is a #define, use deflateEnd instead
 # ******************************
+
 CHECK_LIBRARY_EXISTS(z deflateEnd "" deflateEnd_exists)
 
 if(NOT HAVE_ZLIB_H)
@@ -765,7 +773,10 @@ set(CALENDAR_CFLAGS "${CALENDAR_CFLAGS} ${LIBICAL_EXTRA_CFLAGS}")
 
 pkg_check_modules(CAMEL gio-2.0 gmodule-2.0 ${mozilla_nss} ${mozilla_nspr} sqlite3>=${sqlite_minimum_version})
 set(CAMEL_CFLAGS "${CAMEL_CFLAGS} ${KRB5_CFLAGS} ${MANUAL_NSS_CFLAGS} ${MANUAL_NSPR_CFLAGS} ${ICU_CFLAGS}")
-set(CAMEL_LDFLAGS "${CAMEL_LDFLAGS} -lz ${KRB5_LDFLAGS} ${MANUAL_NSS_LIBS} ${MANUAL_NSPR_LIBS} ${ICU_LIBS}")
+set(CAMEL_LDFLAGS "${CAMEL_LDFLAGS} -lz ${KRB5_LDFLAGS} ${MANUAL_NSS_LIBS} ${MANUAL_NSPR_LIBS} ${ICU_LDFLAGS}")
+
+string(STRIP "${CAMEL_CFLAGS}" CAMEL_CFLAGS)
+string(STRIP "${CAMEL_LDFLAGS}" CAMEL_LDFLAGS)
 
 # ******************************
 # libical tweaks
@@ -803,9 +814,34 @@ CHECK_C_SOURCE_COMPILES("#include <libical/ical.h>
 unset(CMAKE_REQUIRED_FLAGS)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
+# ******************************
+# Vala binding
+# ******************************
+
+add_printable_option(ENABLE_VALA_BINDINGS "Build the experimental Vala bindings" OFF)
+
+if(ENABLE_VALA_BINDINGS)
+	if(NOT ENABLE_INTROSPECTION)
+		message(FATAL_ERROR "Vala bindings require introspection generation to be enabled, use -DENABLE_INTROSPECTION=ON to enable it, or disable Vala bindings with -DENABLE_VALA_BINDINGS=OFF")
+	endif(NOT ENABLE_INTROSPECTION)
+
+	find_program(VALAC valac)
+	if(NOT VALAC)
+		message(FATAL_ERROR "The valac not found. Install it or disable Vala bindings with -DENABLE_VALA_BINDINGS=OFF")
+	endif(NOT VALAC)
+
+	find_program(VAPIGEN vapigen)
+	if(NOT VAPIGEN)
+		message(FATAL_ERROR "The vapigen not found. Install it or disable Vala bindings with -DENABLE_VALA_BINDINGS=OFF")
+	endif(NOT VAPIGEN)
+
+endif(ENABLE_VALA_BINDINGS)
+
 # Generate the config.h file
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
 
 add_definitions(-DHAVE_CONFIG_H=1)
 
 print_build_options()
+
+add_subdirectory(camel)

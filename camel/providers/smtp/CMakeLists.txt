@@ -1,0 +1,40 @@
+set(SOURCES
+	camel-smtp-provider.c
+	camel-smtp-settings.c
+	camel-smtp-settings.h
+	camel-smtp-transport.c
+	camel-smtp-transport.h
+)
+
+add_library(camelsmtp MODULE ${SOURCES})
+
+add_dependencies(camelsmtp camel)
+
+target_compile_definitions(camelsmtp PRIVATE
+	-DG_LOG_DOMAIN=\"camel-smtp-provider\"
+)
+
+target_compile_options(camelsmtp PUBLIC
+	${CAMEL_CFLAGS}
+)
+
+target_include_directories(camelsmtp PUBLIC
+	${CMAKE_BINARY_DIR}
+	${CMAKE_BINARY_DIR}/camel
+	${CMAKE_SOURCE_DIR}
+	${CMAKE_SOURCE_DIR}/camel
+	${CAMEL_INCLUDE_DIRS}
+)
+
+target_link_libraries(camelsmtp
+	camel
+	${CAMEL_LDFLAGS}
+)
+
+install(TARGETS camelsmtp
+	DESTINATION ${camel_providerdir}
+)
+
+install(FILES libcamelsmtp.urls
+	DESTINATION ${camel_providerdir}
+)

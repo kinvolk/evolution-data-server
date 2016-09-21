@@ -76,3 +76,15 @@ function(pkg_check_variable _output_name _pkg _name)
 
     set("${_output_name}" "${_pkg_result}" CACHE STRING "pkg-config variable ${_name} of ${_pkg}")
 endfunction()
+
+macro(add_pkgconfig_file _input _output)
+	configure_file(
+		${CMAKE_CURRENT_SOURCE_DIR}/${_input}
+		${CMAKE_CURRENT_BINARY_DIR}/${_output}
+		@ONLY
+	)
+
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${_output}
+		DESTINATION ${LIB_INSTALL_DIR}/pkgconfig
+	)
+endmacro()

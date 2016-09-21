@@ -5,14 +5,13 @@
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
-function(setup_build_flags _maintainer_mode)
+macro(setup_build_flags _maintainer_mode)
 	list(APPEND proposed_flags
 		-Werror-implicit-function-declaration
 		-Wformat
 		-Wformat-security
 		-Winit-self
 		-Wmissing-declarations
-		-Wmissing-include-dirs
 		-Wmissing-noreturn
 		-Wpointer-arith
 		-Wredundant-decls
@@ -27,9 +26,12 @@ function(setup_build_flags _maintainer_mode)
 			-Wall
 			-Wextra
 			-Wdeprecated-declarations
+			-Wmissing-include-dirs
 		)
 	else(_maintainer_mode)
-		list(APPEND proposed_flags -Wno-deprecated-declarations)
+		list(APPEND proposed_flags
+			-Wno-deprecated-declarations
+			-Wno-missing-include-dir)
 	endif(_maintainer_mode)
 
 	list(APPEND proposed_c_flags
@@ -70,10 +72,10 @@ function(setup_build_flags _maintainer_mode)
 		unset(cxx_flag_${flag}_supported)
 	endforeach()
 
-	if(("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "gcc"))
+	if(("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-undefined")
 		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--no-undefined")
 		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
 		set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -Wl,--no-undefined")
-	endif(("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "gcc"))
-endfunction()
+	endif(("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU"))
+endmacro()
