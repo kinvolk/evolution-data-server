@@ -202,6 +202,7 @@ unset(optupper)
 # ******************************
 
 include(CodeCoverageGCOV)
+include(CheckTarget)
 include(DistTarget)
 include(GLibTools)
 include(PkgConfigEx)
@@ -214,6 +215,10 @@ include(FindPhonenumber)
 include(FindSMIME)
 
 add_printable_option(ENABLE_MAINTAINER_MODE "Enable maintainer mode" OFF)
+
+if(ENABLE_MAINTAINER_MODE)
+	set(BUILD_TESTING ON)
+endif(ENABLE_MAINTAINER_MODE)
 
 # Setup compiler/linker flags
 setup_build_flags(${ENABLE_MAINTAINER_MODE})

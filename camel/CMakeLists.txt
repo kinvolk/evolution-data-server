@@ -429,3 +429,4 @@ install(TARGETS camel-gpg-photo-saver
 )
 
 add_subdirectory(providers)
+add_subdirectory(tests)
