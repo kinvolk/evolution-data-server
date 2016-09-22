@@ -18,7 +18,6 @@ set(SOURCES
 	camel-data-wrapper.c
 	camel-db.c
 	camel-debug.c
-	camel-enumtypes.c
 	camel-file-utils.c
 	camel-filter-driver.c
 	camel-filter-input-stream.c
@@ -60,7 +59,6 @@ set(SOURCES
 	camel-mime-parser.c
 	camel-mime-part-utils.c
 	camel-mime-part.c
-	camel-mime-tables.c
 	camel-mime-utils.c
 	camel-msgport.c
 	camel-multipart-encrypted.c
@@ -118,6 +116,8 @@ set(SOURCES
 	camel-vee-store.c
 	camel-vee-summary.c
 	camel-vtrash-folder.c
+	${CMAKE_CURRENT_BINARY_DIR}/camel-enumtypes.c
+	${CMAKE_CURRENT_BINARY_DIR}/camel-mime-tables.c
 )
 
 if(WIN32)
@@ -266,7 +266,7 @@ target_compile_definitions(camel PRIVATE
 	-DCAMEL_LIBEXECDIR=\"${LIBEXEC_INSTALL_DIR}\"
 	-DCAMEL_PROVIDERDIR=\"${camel_providerdir}\"
 	-DE_DATA_SERVER_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
-	-DLOCALEDIR=\"${LOCALE_INSTALL_PREFIX}\"
+	-DLOCALEDIR=\"${LOCALE_INSTALL_DIR}\"
 	-DCAMEL_COMPILATION
 )
 
@@ -307,6 +307,29 @@ install(FILES ${HEADERS}
 
 add_pkgconfig_file(camel.pc.in camel-${API_VERSION}.pc)
 
+set(gir_sources ${SOURCES} ${HEADERS})
+set(gir_identifies_prefixes Camel camel)
+set(gir_includes GObject-2.0 Gio-2.0 libxml2-2.0)
+set(gir_cflags ${CAMEL_CFLAGS} -DCAMEL_COMPILATION)
+set(gir_libdirs)
+set(gir_libs camel)
+
+# Enable once the typelib will be buildable; the gi-r-compiler crashes with
+#    ERROR:girepository/girparser.c:343:state_switch: assertion failed: (ctx->state != newstate)
+#
+#gir_add_introspection_simple(
+#	Camel
+#	camel
+#	${API_VERSION}
+#	"camel/camel.h"
+#	gir_identifies_prefixes
+#	gir_includes
+#	gir_cflags
+#	gir_libdirs
+#	gir_libs
+#	gir_sources
+#)
+
 if(NOT WIN32)
 	add_executable(camel-lock-helper
 		camel-lock.c
@@ -324,7 +347,7 @@ if(NOT WIN32)
 		-DCAMEL_LIBEXECDIR=\"${LIBEXEC_INSTALL_DIR}\"
 		-DCAMEL_PROVIDERDIR=\"${camel_providerdir}\"
 		-DE_DATA_SERVER_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
-		-DLOCALEDIR=\"${LOCALE_INSTALL_PREFIX}\"
+		-DLOCALEDIR=\"${LOCALE_INSTALL_DIR}\"
 		-DCAMEL_COMPILATION
 	)
 
@@ -364,7 +387,7 @@ target_compile_definitions(camel-index-control PRIVATE
 	-DCAMEL_LIBEXECDIR=\"${LIBEXEC_INSTALL_DIR}\"
 	-DCAMEL_PROVIDERDIR=\"${camel_providerdir}\"
 	-DE_DATA_SERVER_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
-	-DLOCALEDIR=\"${LOCALE_INSTALL_PREFIX}\"
+	-DLOCALEDIR=\"${LOCALE_INSTALL_DIR}\"
 	-DCAMEL_COMPILATION
 )
 

@@ -107,7 +107,7 @@ set(json_glib_minimum_version 1.0.4)
 set(webkit2gtk_minimum_version 2.11.91)
 
 # Load modules from the source tree
-set(CMAKE_MODULE_PATH $CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -128,8 +128,8 @@ add_printable_variable_path(BIN_INSTALL_DIR "Install directory for binary files,
 add_printable_variable_path(INCLUDE_INSTALL_DIR "Install directory for header files, defaults to CMAKE_INSTALL_PREFIX/include" "${CMAKE_INSTALL_PREFIX}/include")
 add_printable_variable_path(LIB_INSTALL_DIR "Install directory for library files, defaults to CMAKE_INSTALL_PREFIX/lib{LIB_SUFFIX}" "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
 add_printable_variable_path(LIBEXEC_INSTALL_DIR "Install directory for library executable files, defaults to CMAKE_INSTALL_PREFIX/libexec" "${CMAKE_INSTALL_PREFIX}/libexec")
-add_printable_variable_path(SHARE_INSTALL_PREFIX "Install directory for shared files, defaults to CMAKE_INSTALL_PREFIX/share" "${CMAKE_INSTALL_PREFIX}/share")
-add_printable_variable_path(LOCALE_INSTALL_PREFIX "Install directory for locale files, defaults to SHARE_INSTALL_PREFIX/locale" "${SHARE_INSTALL_PREFIX}/locale")
+add_printable_variable_path(SHARE_INSTALL_DIR "Install directory for shared files, defaults to CMAKE_INSTALL_PREFIX/share" "${CMAKE_INSTALL_PREFIX}/share")
+add_printable_variable_path(LOCALE_INSTALL_DIR "Install directory for locale files, defaults to SHARE_INSTALL_DIR/locale" "${SHARE_INSTALL_DIR}/locale")
 add_printable_variable_path(SYSCONF_INSTALL_DIR "Install directory for system configuration files, defaults to CMAKE_INSTALL_PREFIX/etc" "${CMAKE_INSTALL_PREFIX}/etc")
 
 # ******************************
@@ -139,7 +139,7 @@ add_printable_variable_path(SYSCONF_INSTALL_DIR "Install directory for system co
 # If you add something here, consider whether or not you also
 # need to add it to one or more .pc.in files (for Connector, etc)
 
-set(privdatadir "${SHARE_INSTALL_PREFIX}/${PROJECT_NAME}")
+set(privdatadir "${SHARE_INSTALL_DIR}/${PROJECT_NAME}")
 set(privincludedir "${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}")
 set(privlibdir "${LIB_INSTALL_DIR}/${PROJECT_NAME}")
 set(privlibexecdir "${LIBEXEC_INSTALL_DIR}'/${PROJECT_NAME}")
@@ -153,7 +153,7 @@ else(WIN32)
 	set(privsolibdir "${privlibdir}")
 endif(WIN32)
 
-set(imagesdir "${SHARE_INSTALL_PREFIX}/pixmaps/${PROJECT_NAME}")
+set(imagesdir "${SHARE_INSTALL_DIR}/pixmaps/${PROJECT_NAME}")
 set(moduledir "${privlibdir}/registry-modules")
 set(credentialmoduledir "${privlibdir}/credential-modules")
 set(ebook_backenddir "${privlibdir}/addressbook-backends")
@@ -175,7 +175,7 @@ if(WIN32 AND (NOT ("$ENV{WIN32_SERVICELIBEXECDIR}" STREQUAL "")))
 	set(servicelibexecdir "$ENV{WIN32_SERVICELIBEXECDIR}")
 endif(WIN32 AND (NOT ("$ENV{WIN32_SERVICELIBEXECDIR}" STREQUAL "")))
 
-add_printable_variable_path(WITH_DBUS_SERVICE_DIR "Set directory for D-Bus service files" "${SHARE_INSTALL_PREFIX}/dbus-1/services")
+add_printable_variable_path(WITH_DBUS_SERVICE_DIR "Set directory for D-Bus service files" "${SHARE_INSTALL_DIR}/dbus-1/services")
 
 # It is correct for this to be in ${CMAKE_INSTALL_PREFIX}/lib, even on systems where that
 # does not match ${LIB_INSTALL_DIR}. This is what systemd uses on such platforms.
@@ -207,6 +207,7 @@ include(CodeCoverageGCOV)
 include(CheckTarget)
 include(DistTarget)
 include(GLibTools)
+include(GObjectIntrospection)
 include(PkgConfigEx)
 include(SetupBuildFlags)
 include(UninstallTarget)
@@ -852,5 +853,5 @@ add_definitions(-DHAVE_CONFIG_H=1)
 print_build_options()
 
 add_subdirectory(camel)
-add_subdirectory(private)
 add_subdirectory(libedataserver)
+add_subdirectory(private)

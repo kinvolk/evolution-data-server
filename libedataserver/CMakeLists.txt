@@ -78,7 +78,6 @@ set(SOURCES
 	e-source-credentials-provider-impl.c
 	e-source-credentials-provider-impl-google.c
 	e-source-credentials-provider-impl-password.c
-	e-source-enumtypes.c
 	e-source-goa.c
 	e-source-ldap.c
 	e-source-local.c
@@ -113,6 +112,7 @@ set(SOURCES
 	e-xml-hash-utils.c
 	libedataserver-private.h
 	eds-version.c
+	${CMAKE_CURRENT_BINARY_DIR}/e-source-enumtypes.c
 )
 
 set(HEADERS
@@ -209,7 +209,7 @@ set_target_properties(edataserver PROPERTIES
 target_compile_definitions(edataserver PRIVATE
 	-DG_LOG_DOMAIN=\"e-data-server\"
 	-DE_DATA_SERVER_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
-	-DE_DATA_SERVER_LOCALEDIR=\"${LOCALE_INSTALL_PREFIX}\"
+	-DE_DATA_SERVER_LOCALEDIR=\"${LOCALE_INSTALL_DIR}\"
 	-DE_DATA_SERVER_IMAGESDIR=\"${imagesdir}\"
 	-DE_DATA_SERVER_CREDENTIALMODULEDIR=\"${credentialmoduledir}\"
 	-DE_DATA_SERVER_PRIVDATADIR=\"${privdatadir}\"
@@ -254,4 +254,27 @@ install(TARGETS edataserver
 
 install(FILES ${HEADERS}
 	DESTINATION ${privincludedir}/libedataserver
+)
+
+set(gir_sources ${SOURCES} ${HEADERS})
+set(gir_identifies_prefixes E)
+set(gir_includes GObject-2.0 Gio-2.0 Soup-2.4 libxml2-2.0)
+set(gir_cflags ${CAMEL_CFLAGS} ${DATA_SERVER_CFLAGS} -DLIBEDATASERVER_COMPILATION)
+set(gir_libdirs ${CMAKE_BINARY_DIR}/private)
+set(gir_libs camel edataserver)
+
+gir_filter_out_sources(gir_sources e-sexp.h)
+gir_filter_out_sources(gir_sources -private.h)
+
+gir_add_introspection_simple(
+	EDataServer
+	libedataserver
+	${API_VERSION}
+	"libedataserver/libedataserver.h"
+	gir_identifies_prefixes
+	gir_includes
+	gir_cflags
+	gir_libdirs
+	gir_libs
+	gir_sources
 )
