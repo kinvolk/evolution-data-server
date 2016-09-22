@@ -1,7 +1,6 @@
 macro(add_camel_test_one _part _name _src_file)
 	set(_test_ident cameltest-${_part}-${_name})
 
-	# not using EXCLUDE_FROM_ALL to have the tests verified that they can be built
 	add_executable(${_test_ident} EXCLUDE_FROM_ALL ${_src_file})
 
 	target_compile_definitions(${_test_ident} PRIVATE

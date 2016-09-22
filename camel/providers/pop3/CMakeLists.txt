@@ -12,9 +12,15 @@ set(SOURCES
 	camel-pop3-store.h
 )
 
+set(DEPENDENCIES
+	camel
+)
+
 add_library(camelpop3 MODULE ${SOURCES})
 
-add_dependencies(camelpop3 camel)
+add_dependencies(camelpop3
+	${DEPENDENCIES}
+)
 
 target_compile_definitions(camelpop3 PRIVATE
 	-DG_LOG_DOMAIN=\"camel-pop3-provider\"
@@ -33,7 +39,7 @@ target_include_directories(camelpop3 PUBLIC
 )
 
 target_link_libraries(camelpop3
-	camel
+	${DEPENDENCIES}
 	${CAMEL_LDFLAGS}
 )
 

@@ -39,6 +39,10 @@ set(SOURCES
 	camel-imapx-utils.h
 )
 
+set(DEPENDENCIES
+	camel
+)
+
 add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/camel-imapx-tokenise.h
 	COMMAND ${GPERF} -H imapx_hash -N imapx_tokenise_struct -L ANSI-C -o -t -k1,$$ ${CMAKE_CURRENT_SOURCE_DIR}/camel-imapx-tokens.txt --output-file=${CMAKE_CURRENT_BINARY_DIR}/camel-imapx-tokenise.h
@@ -47,7 +51,9 @@ add_custom_command(
 
 add_library(camelimapx MODULE ${SOURCES})
 
-add_dependencies(camelimapx camel)
+add_dependencies(camelimapx
+	${DEPENDENCIES}
+)
 
 target_compile_definitions(camelimapx PRIVATE
 	-DG_LOG_DOMAIN=\"camel-imapx-provider\"
@@ -71,7 +77,7 @@ target_include_directories(camelimapx PUBLIC
 )
 
 target_link_libraries(camelimapx
-	camel
+	${DEPENDENCIES}
 	${CAMEL_LDFLAGS}
 	${GIO_UNIX_LDFLAGS}
 	${CALENDAR_LDFLAGS}

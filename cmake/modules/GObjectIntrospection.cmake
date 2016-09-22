@@ -38,12 +38,13 @@ endmacro(_gir_list_prefix)
 macro(_gir_list_prefix_libs _outvar _listvar _prefix)
 	set(${_outvar})
 	foreach(_item IN LISTS ${_listvar})
-		get_target_property(_output_name ${_item} OUTPUT_NAME)
-		if(_output_name)
-			list(APPEND ${_outvar} ${_prefix}${_output_name})
-		else(_output_name)
-			list(APPEND ${_outvar} ${_prefix}${_item})
-		endif(_output_name)
+		list(APPEND ${_outvar} ${_prefix}${_item}-${API_VERSION})
+		#get_target_property(_output_name ${_item} OUTPUT_NAME)
+		#if(_output_name)
+		#	list(APPEND ${_outvar} ${_prefix}${_output_name})
+		#else(_output_name)
+		#	list(APPEND ${_outvar} ${_prefix}${_item})
+		#endif(_output_name)
 	endforeach()
 endmacro(_gir_list_prefix_libs)
 
@@ -112,6 +113,7 @@ macro(gir_add_introspection gir)
 				--accept-unprefixed
 			DEPENDS ${${_gir_name}_FILES}
 				${${_gir_name}_LIBS}
+				${${_gir_name}_DEPS}
 			OUTPUT ${gir}
 			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 			VERBATIM
@@ -138,7 +140,25 @@ macro(gir_add_introspection gir)
 	endif(ENABLE_INTROSPECTION)
 endmacro(gir_add_introspection)
 
-macro(gir_add_introspection_simple gir_library pkg_export_prefix gir_library_version c_include gir_identifies_prefixes_var gir_includes_var extra_cflags_var gir_extra_libdirs_var gir_libs_var gir_sources_var)
+macro(_gir_deps_to_cmake_targets _outvar _inlist)
+	set(${_outvar})
+	foreach(_item IN LISTS ${_inlist})
+		get_filename_component(_filename "${_item}" NAME)
+		string(REPLACE "-" "_" _filename "${_filename}")
+		string(REPLACE "." "_" _filename "${_filename}")
+		list(APPEND ${_outvar} gir-girs-${_filename})
+	endforeach()
+endmacro(_gir_deps_to_cmake_targets)
+
+macro(_gir_deps_to_includedir _outvar _inlist)
+	set(${_outvar})
+	foreach(_item IN LISTS ${_inlist})
+		get_filename_component(_directory "${_item}" DIRECTORY)
+		list(APPEND ${_outvar} "--includedir=${_directory}")
+	endforeach()
+endmacro(_gir_deps_to_includedir)
+
+macro(gir_add_introspection_simple gir_library pkg_export_prefix gir_library_version c_include gir_identifies_prefixes_var gir_includes_var extra_cflags_var gir_extra_libdirs_var gir_libs_var gir_deps_var gir_sources_var)
 	gir_construct_names(${gir_library} ${gir_library_version} gir_name gir_vars_prefix)
 
 	unset(INTROSPECTION_SCANNER_FLAGS)
@@ -147,7 +167,7 @@ macro(gir_add_introspection_simple gir_library pkg_export_prefix gir_library_ver
 
 	set(${gir_vars_prefix} ${gir_library})
 	set(${gir_vars_prefix}_SCANNERFLAGS "--warn-all")
-	set(${gir_vars_prefix}_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+	set(${gir_vars_prefix}_VERSION "${gir_library_version}")
 	set(${gir_vars_prefix}_LIBRARY "${gir_vars_prefix}")
 	set(${gir_vars_prefix}_INCLUDES ${${gir_includes_var}})
 	set(${gir_vars_prefix}_CFLAGS
@@ -160,8 +180,12 @@ macro(gir_add_introspection_simple gir_library pkg_export_prefix gir_library_ver
 	set(${gir_vars_prefix}_LIBS ${${gir_libs_var}})
 	set(${gir_vars_prefix}_FILES ${${gir_sources_var}})
 
+	_gir_deps_to_includedir(INTROSPECTION_COMPILER_ARGS ${gir_deps_var})
+	_gir_deps_to_cmake_targets(${gir_vars_prefix}_DEPS ${gir_deps_var})
+
 	_gir_list_prefix(_gir_identifies_prefixes ${gir_identifies_prefixes_var} "--identifier-prefix=")
 	_gir_list_prefix(_gir_extra_libdirs ${gir_extra_libdirs_var} "--library-path=")
+	_gir_list_prefix(_gir_deps ${gir_deps_var} "--include-uninstalled=")
 
 	set(INTROSPECTION_SCANNER_ARGS
 		--add-include-path=${CMAKE_BINARY_DIR}
@@ -173,6 +197,7 @@ macro(gir_add_introspection_simple gir_library pkg_export_prefix gir_library_ver
 		--library-path=${CMAKE_CURRENT_BINARY_DIR}
 		${_gir_extra_libdirs}
 		${_gir_identifies_prefixes}
+		${_gir_deps}
 		--pkg-export ${pkg_export_prefix}-${gir_library_version}
 		--c-include="${c_include}"
 		--cflags-begin

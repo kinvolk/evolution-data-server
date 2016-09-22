@@ -38,6 +38,12 @@ target_link_libraries(edataserver-private
 	${ICU_LDFLAGS}
 )
 
+set(DEPENDENCIES
+	camel
+	edataserver-private
+	edbus-private
+)
+
 set(SOURCES
 	e-alphabet-index-private.h
 	e-cancellable-locks.c
@@ -196,9 +202,8 @@ add_library(edataserver SHARED
 )
 
 add_dependencies(edataserver
-	camel
-	edataserver-private
-	edbus-private)
+	${DEPENDENCIES}
+)
 
 set_target_properties(edataserver PROPERTIES
 	VERSION "${LIBEDATASERVER_CURRENT}.${LIBEDATASERVER_REVISION}.${LIBEDATASERVER_AGE}"
@@ -238,9 +243,7 @@ target_include_directories(edataserver PUBLIC
 )
 
 target_link_libraries(edataserver
-	camel
-	edbus-private
-	edataserver-private
+	${DEPENDENCIES}
 	${DATA_SERVER_LDFLAGS}
 	${GCR_BASE_LDFLAGS}
 	${GIO_UNIX_LDFLAGS}
@@ -262,6 +265,7 @@ set(gir_includes GObject-2.0 Gio-2.0 Soup-2.4 libxml2-2.0)
 set(gir_cflags ${CAMEL_CFLAGS} ${DATA_SERVER_CFLAGS} -DLIBEDATASERVER_COMPILATION)
 set(gir_libdirs ${CMAKE_BINARY_DIR}/private)
 set(gir_libs camel edataserver)
+set(gir_deps)
 
 gir_filter_out_sources(gir_sources e-sexp.h)
 gir_filter_out_sources(gir_sources -private.h)
@@ -276,5 +280,6 @@ gir_add_introspection_simple(
 	gir_cflags
 	gir_libdirs
 	gir_libs
+	gir_deps
 	gir_sources
 )

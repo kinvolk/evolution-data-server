@@ -30,6 +30,10 @@ set(SOURCES
 	camel-mh-summary.h
 )
 
+set(DEPENDENCIES
+	camel
+)
+
 if(NOT WIN32)
 	list(APPEND SOURCES
 		camel-spool-folder.c
@@ -45,7 +49,9 @@ endif(NOT WIN32)
 
 add_library(camellocal MODULE ${SOURCES})
 
-add_dependencies(camellocal camel)
+add_dependencies(camellocal
+	${DEPENDENCIES}
+)
 
 target_compile_definitions(camellocal PRIVATE
 	-DG_LOG_DOMAIN=\"camel-local-provider\"
@@ -64,7 +70,7 @@ target_include_directories(camellocal PUBLIC
 )
 
 target_link_libraries(camellocal
-	camel
+	${DEPENDENCIES}
 	${CAMEL_LDFLAGS}
 )
 

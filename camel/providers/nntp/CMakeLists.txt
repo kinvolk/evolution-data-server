@@ -16,9 +16,15 @@ set(SOURCES
 	camel-nntp-summary.h
 )
 
+set(DEPENDENCIES
+	camel
+)
+
 add_library(camelnntp MODULE ${SOURCES})
 
-add_dependencies(camelnntp camel)
+add_dependencies(camelnntp
+	${DEPENDENCIES}
+)
 
 target_compile_definitions(camelnntp PRIVATE
 	-DG_LOG_DOMAIN=\"camel-nntp-provider\"
@@ -37,7 +43,7 @@ target_include_directories(camelnntp PUBLIC
 )
 
 target_link_libraries(camelnntp
-	camel
+	${DEPENDENCIES}
 	${CAMEL_LDFLAGS}
 )
 

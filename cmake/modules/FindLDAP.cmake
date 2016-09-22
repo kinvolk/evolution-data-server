@@ -13,6 +13,7 @@
 #    HAVE_LDAP - set to ON, if LDAP support is enabled and libraries found
 #    SUNLDAP - set to ON, when using SunLDAP implementation
 #    LDAP_CFLAGS - CFLAGS to use with target_compile_options() and similar commands
+#    LDAP_INCLDUE_DIRS - include directories to use with target_include_directories() and similar commands
 #    LDAP_LDFLAGS - LDFLAGS to use with target_link_libraries() and similar commands
 
 include(CheckCSourceCompiles)
@@ -64,11 +65,12 @@ else(WITH_OPENLDAP)
 	set(SUNLDAP ON)
 endif(WITH_OPENLDAP)
 
-set(LDAP_CFLAGS "-I${LDAP_PREFIX}/include")
+set(LDAP_CFLAGS "")
+set(LDAP_INCLUDE_DIRECTORIES "${LDAP_PREFIX}/include")
 set(LDAP_LIBS "-L${LDAP_PREFIX}/lib${LIB_SUFFIX}")
 
-set(CMAKE_REQUIRED_INCLUDES "-I${LDAP_CFLAGS}")
-set(CMAKE_REQUIRED_LIBRARIES "-L${LDAP_LIBS}")
+set(CMAKE_REQUIRED_INCLUDES "${LDAP_INCLUDE_DIRECTORIES}")
+set(CMAKE_REQUIRED_LIBRARIES "${LDAP_LIBS}")
 
 if(WITH_OPENLDAP)
 	CHECK_C_SOURCE_COMPILES("#include \"ldap.h\"
@@ -127,3 +129,5 @@ endif(libldap_provides_ldap_open)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
+
+add_definitions(-DLDAP_DEPRECATED)

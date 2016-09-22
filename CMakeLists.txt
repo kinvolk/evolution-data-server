@@ -250,6 +250,11 @@ if(NOT PERL)
 	message(FATAL_ERROR "You need perl to build ${PROJECT_NAME}")
 endif(NOT PERL)
 
+find_program(PYTHON python)
+if(NOT PYTHON)
+	message(FATAL_ERROR "You need python to build ${PROJECT_NAME}")
+endif(NOT PYTHON)
+
 # ******************************
 # deflateInit is a #define, use deflateEnd instead
 # ******************************
@@ -852,6 +857,9 @@ add_definitions(-DHAVE_CONFIG_H=1)
 
 print_build_options()
 
+add_subdirectory(addressbook)
 add_subdirectory(camel)
+add_subdirectory(libebackend)
 add_subdirectory(libedataserver)
+add_subdirectory(libedataserverui)
 add_subdirectory(private)

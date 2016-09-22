@@ -6,9 +6,15 @@ set(SOURCES
 	camel-smtp-transport.h
 )
 
+set(DEPENDENCIES
+	camel
+)
+
 add_library(camelsmtp MODULE ${SOURCES})
 
-add_dependencies(camelsmtp camel)
+add_dependencies(camelsmtp
+	${DEPENDENCIES}
+)
 
 target_compile_definitions(camelsmtp PRIVATE
 	-DG_LOG_DOMAIN=\"camel-smtp-provider\"
@@ -27,7 +33,7 @@ target_include_directories(camelsmtp PUBLIC
 )
 
 target_link_libraries(camelsmtp
-	camel
+	${DEPENDENCIES}
 	${CAMEL_LDFLAGS}
 )
 

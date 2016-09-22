@@ -143,7 +143,7 @@ set(GENERATED_DBUS_SUBPROCESS_BACKEND
 )
 
 gdbus_codegen_custom(org.gnome.evolution.dataserver.Subprocess.Backend.xml
-	org.gnome.evolution.dataserver.
+	org.gnome.evolution.dataserver.Subprocess
 	E_DBus_Subprocess
 	e-dbus-subprocess-backend
 	GENERATED_DBUS_SUBPROCESS_BACKEND

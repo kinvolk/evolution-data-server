@@ -313,6 +313,7 @@ set(gir_includes GObject-2.0 Gio-2.0 libxml2-2.0)
 set(gir_cflags ${CAMEL_CFLAGS} -DCAMEL_COMPILATION)
 set(gir_libdirs)
 set(gir_libs camel)
+set(gir_deps)
 
 # Enable once the typelib will be buildable; the gi-r-compiler crashes with
 #    ERROR:girepository/girparser.c:343:state_switch: assertion failed: (ctx->state != newstate)
@@ -327,6 +328,7 @@ set(gir_libs camel)
 #	gir_cflags
 #	gir_libdirs
 #	gir_libs
+#	gir_deps
 #	gir_sources
 #)
 

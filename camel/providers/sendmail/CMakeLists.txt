@@ -6,9 +6,15 @@ set(SOURCES
 	camel-sendmail-transport.h
 )
 
+set(DEPENDENCIES
+	camel
+)
+
 add_library(camelsendmail MODULE ${SOURCES})
 
-add_dependencies(camelsendmail camel)
+add_dependencies(camelsendmail
+	${DEPENDENCIES}
+)
 
 target_compile_definitions(camelsendmail PRIVATE
 	-DG_LOG_DOMAIN=\"camel-sendmail-provider\"
@@ -27,7 +33,7 @@ target_include_directories(camelsendmail PUBLIC
 )
 
 target_link_libraries(camelsendmail
-	camel
+	${DEPENDENCIES}
 	${CAMEL_LDFLAGS}
 )
 
