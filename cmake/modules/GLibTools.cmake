@@ -30,6 +30,12 @@
 # gdbus_codegen_custom(_xml _interface_prefix _c_namespace _files_prefix _list_gens _args)
 #    The same as gdbus_codegen() except allows to pass other arguments to the call,
 #    like for example --c-generate-object-manager
+#
+# add_gsettings_schemas(_target _schema0 ...)
+#    Adds one or more GSettings schemas. The extension is supposed to be .gschema.xml. The schema file generation
+#    is added as a dependency of _target.
+
+include(PkgConfigEx)
 
 find_program(GLIB_MKENUMS glib-mkenums)
 if(NOT GLIB_MKENUMS)
@@ -143,3 +149,48 @@ endfunction(gdbus_codegen_custom)
 function(gdbus_codegen _xml _interface_prefix _c_namespace _files_prefix _list_gens)
 	gdbus_codegen_custom(${_xml} ${_interface_prefix} ${_c_namespace} ${_files_prefix} ${_list_gens} "")
 endfunction(gdbus_codegen)
+
+add_printable_option(ENABLE_SCHEMAS_COMPILE "Enable GSettings regeneration of gschemas.compile on install" ON)
+
+if(CMAKE_CROSSCOMPILING)
+	find_program(GLIB_COMPILE_SCHEMAS glib-compile-schemas)
+else(CMAKE_CROSSCOMPILING)
+	pkg_check_variable(GLIB_COMPILE_SCHEMAS gio-2.0 glib_compile_schemas)
+endif(CMAKE_CROSSCOMPILING)
+
+if(NOT GLIB_COMPILE_SCHEMAS)
+	message(FATAL_ERROR "Cannot find glib-compile-schemas, which is required to build ${PROJECT_NAME}")
+endif(NOT GLIB_COMPILE_SCHEMAS)
+
+set(GSETTINGS_SCHEMAS_DIR "${SHARE_INSTALL_DIR}/glib-2.0/schemas/")
+
+macro(add_gsettings_schemas _target _schema0)
+	foreach(_schema ${_schema0} ${ARGN})
+		string(REPLACE ".xml" ".valid" _outputfile "${_schema}")
+		add_custom_command(
+			OUTPUT ${_outputfile}
+			COMMAND ${GLIB_COMPILE_SCHEMAS} --strict --dry-run --schema-file=${CMAKE_CURRENT_SOURCE_DIR}/${_schema}
+			COMMAND cmake -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${_schema}" "${CMAKE_CURRENT_BINARY_DIR}/${_outputfile}"
+			VERBATIM
+		)
+		add_custom_target(gsettings-schemas-${_schema} ALL DEPENDS ${_outputfile})
+		add_dependencies(${_target} gsettings-schemas-${_schema})
+		install(FILES ${_schema}
+			DESTINATION ${GSETTINGS_SCHEMAS_DIR})
+	endforeach(_schema)
+endmacro(add_gsettings_schemas)
+
+# This is called too early, when the schemas are not installed yet during `make install`
+#
+# compile_gsettings_schemas()
+#    Optionally (based on ENABLE_SCHEMAS_COMPILE) recompiles schemas at the destination folder
+#    after install. It's necessary to call it as the last command in the toplevel CMakeLists.txt,
+#    thus the compile runs when all the schemas are installed.
+#
+#macro(compile_gsettings_schemas)
+#	if(ENABLE_SCHEMAS_COMPILE)
+#		install(CODE
+#			"message(STATUS \"Compiling GSettings schemas at '${GSETTINGS_SCHEMAS_DIR}'\")
+#			execute_process(COMMAND cmake -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\")")
+#	endif(ENABLE_SCHEMAS_COMPILE)
+#endmacro(compile_gsettings_schemas)

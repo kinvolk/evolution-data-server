@@ -132,3 +132,5 @@ install(TARGETS ebackend
 install(FILES ${HEADERS}
 	DESTINATION ${privincludedir}/libebackend
 )
+
+add_gsettings_schemas(ebackend org.gnome.evolution.eds-shell.gschema.xml)

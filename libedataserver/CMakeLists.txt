@@ -262,9 +262,19 @@ install(FILES ${HEADERS}
 set(gir_sources ${SOURCES} ${HEADERS})
 set(gir_identifies_prefixes E)
 set(gir_includes GObject-2.0 Gio-2.0 Soup-2.4 libxml2-2.0)
-set(gir_cflags ${CAMEL_CFLAGS} ${DATA_SERVER_CFLAGS} -DLIBEDATASERVER_COMPILATION)
-set(gir_libdirs ${CMAKE_BINARY_DIR}/private)
-set(gir_libs camel edataserver)
+set(gir_cflags
+	${CAMEL_CFLAGS}
+	${DATA_SERVER_CFLAGS}
+	-DLIBEDATASERVER_COMPILATION
+)
+set(gir_libdirs
+	${CMAKE_BINARY_DIR}/private
+	${CMAKE_BINARY_DIR}/camel
+)
+set(gir_libs
+	camel
+	edataserver
+)
 set(gir_deps)
 
 gir_filter_out_sources(gir_sources e-sexp.h)

@@ -137,7 +137,10 @@ set(gir_cflags
 	-I${CMAKE_SOURCE_DIR}/addressbook
 	-I${CMAKE_SOURCE_DIR}/addressbook/libebook-contacts
 )
-set(gir_libdirs ${CMAKE_BINARY_DIR}/private)
+set(gir_libdirs
+	${CMAKE_BINARY_DIR}/private
+	${CMAKE_BINARY_DIR}/libedataserver
+)
 set(gir_libs
 	ebook-contacts
 	edataserver
