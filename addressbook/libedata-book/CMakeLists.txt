@@ -65,7 +65,7 @@ add_dependencies(edata-book
 )
 
 set_target_properties(edata-book PROPERTIES
-	VERSION "${LIBEDATABOOK_CURRENT}.${LIBEDATABOOK_REVISION}.${LIBDATAEBOOK_AGE}"
+	VERSION "${LIBEDATABOOK_CURRENT}.${LIBEDATABOOK_REVISION}.${LIBEDATABOOK_AGE}"
 	SOVERSION ${LIBEDATABOOK_CURRENT}
 	OUTPUT_NAME edata-book-${API_VERSION}
 )
@@ -186,7 +186,6 @@ target_include_directories(evolution-addressbook-factory-subprocess PUBLIC
 )
 
 target_link_libraries(evolution-addressbook-factory-subprocess
-	edata-book
 	${DEPENDENCIES}
 	${ADDRESSBOOK_LDFLAGS}
 	${GTK_LDFLAGS}

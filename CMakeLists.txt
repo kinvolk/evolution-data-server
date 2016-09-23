@@ -92,7 +92,7 @@ add_definitions(-DGDK_VERSION_MIN_REQUIRED=${gdk_encoded_version})
 add_definitions(-DSOUP_VERSION_MIN_REQUIRED=${soup_encoded_version})
 
 set(gcr_minimum_version 3.4)
-set(libgdata_minimum_version 0.10)
+set(libgdata_minimum_version 0.15.1)
 set(libical_minimum_version 0.43)
 set(libsecret_minimum_version 0.5)
 set(libxml_minimum_version 2.0.0)
@@ -142,7 +142,7 @@ add_printable_variable_path(SYSCONF_INSTALL_DIR "Install directory for system co
 set(privdatadir "${SHARE_INSTALL_DIR}/${PROJECT_NAME}")
 set(privincludedir "${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}")
 set(privlibdir "${LIB_INSTALL_DIR}/${PROJECT_NAME}")
-set(privlibexecdir "${LIBEXEC_INSTALL_DIR}'/${PROJECT_NAME}")
+set(privlibexecdir "${LIBEXEC_INSTALL_DIR}/${PROJECT_NAME}")
 
 if(WIN32)
 	# On Win32 there is no "rpath" mechanism. We install the private
@@ -160,7 +160,6 @@ set(ebook_backenddir "${privlibdir}/addressbook-backends")
 set(ecal_backenddir "${privlibdir}/calendar-backends")
 set(ro_sourcesdir "${privdatadir}/ro-sources")
 set(rw_sourcesdir "${privdatadir}/rw-sources")
-set(weatherdatadir "${privdatadir}/weather")
 set(camel_providerdir "${privlibdir}/camel-providers")
 
 # *******************
@@ -771,6 +770,24 @@ else(ENABLE_LARGEFILE)
 endif(ENABLE_LARGEFILE)
 
 # ******************************
+# libical tweaks, part I
+# ******************************
+
+pkg_check_at_least_version(HAVE_LIBICAL_2_0 libical 2.0)
+
+# *****
+# libical.pc from libical-0.43 has a bug in its CFlags.
+# It wants apps to include <libical/ical*.h> but it's CFlags make it difficult
+# to differentiate between <libical/ical.h> and <ical.h>
+# We have fixed all our instances to use <libical/ical.h>.
+# Work-around the buggy CFlags for the 0.43 version.
+# *****
+pkg_check_exact_version(libical_is_0_43 libical 0.43)
+if(libical_is_0_43)
+	pkg_check_variable(LIBICAL_EXTRA_CFLAGS libical includedir)
+endif(libical_is_0_43)
+
+# ******************************
 # subparts flags
 # ******************************
 
@@ -792,22 +809,8 @@ string(STRIP "${CAMEL_CFLAGS}" CAMEL_CFLAGS)
 string(STRIP "${CAMEL_LDFLAGS}" CAMEL_LDFLAGS)
 
 # ******************************
-# libical tweaks
+# libical tweaks, part II (re-using CALENDAR_CFLAGS/CALENDAR_LDFLAGS)
 # ******************************
-
-pkg_check_at_least_version(HAVE_LIBICAL_2_0 libical 2.0)
-
-# *****
-# libical.pc from libical-0.43 has a bug in its CFlags.
-# It wants apps to include <libical/ical*.h> but it's CFlags make it difficult
-# to differentiate between <libical/ical.h> and <ical.h>
-# We have fixed all our instances to use <libical/ical.h>.
-# Work-around the buggy CFlags for the 0.43 version.
-# *****
-pkg_check_exact_version(libical_is_0_43 libical 0.43)
-if(libical_is_0_43)
-	pkg_check_variable(LIBICAL_EXTRA_CFLAGS libical includedir)
-endif(libical_is_0_43)
 
 set(CMAKE_REQUIRED_FLAGS "${CALENDAR_CFLAGS}")
 set(CMAKE_REQUIRED_LIBRARIES "${CALENDAR_LDFLAGS}")
@@ -857,9 +860,32 @@ add_definitions(-DHAVE_CONFIG_H=1)
 
 print_build_options()
 
+add_pkgconfig_file(evolution-data-server.pc.in evolution-data-server-${API_VERSION}.pc)
+
+#add_subdirectory(art)
 add_subdirectory(addressbook)
+add_subdirectory(calendar)
 add_subdirectory(camel)
 add_subdirectory(libebackend)
 add_subdirectory(libedataserver)
-add_subdirectory(libedataserverui)
+add_subdirectory(modules)
 add_subdirectory(private)
+#add_subdirectory(po)
+#add_subdirectory(services)
+#add_subdirectory(tests)
+add_subdirectory(tools)
+
+if(HAVE_GTK)
+	add_subdirectory(libedataserverui)
+endif(HAVE_GTK)
+
+#if(ENABLE_GTK_DOC)
+#	add_subdirectory(doc)
+#endif(ENABLE_GTK_DOC)
+#if(ENABLE_EXAMPLES)
+#	add_subdirectory(examples)
+#endif(ENABLE_EXAMPLES)
+
+#if(ENABLE_VALA_BINDINGS)
+#	add_subdirectory(vala)
+#endif(ENABLE_VALA_BINDINGS)
