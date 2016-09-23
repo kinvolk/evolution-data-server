@@ -194,3 +194,23 @@ endmacro(add_gsettings_schemas)
 #			execute_process(COMMAND cmake -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\")")
 #	endif(ENABLE_SCHEMAS_COMPILE)
 #endmacro(compile_gsettings_schemas)
+
+find_program(GLIB_COMPILE_RESOURCES glib-compile-resources)
+if(NOT GLIB_COMPILE_RESOURCES)
+	message(FATAL_ERROR "Cannot find glib-compile-resources, which is required to build ${PROJECT_NAME}")
+endif(NOT GLIB_COMPILE_RESOURCES)
+
+macro(glib_compile_resources _outputprefix _cname _inxml)
+	add_custom_command(
+		OUTPUT ${_outputprefix}.h
+		COMMAND ${GLIB_COMPILE_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/${_inxml} --target=${_outputprefix}.h --sourcedir=${CMAKE_CURRENT_SOURCE_DIR} --c-name ${_cname} --generate-header
+		DEPENDS ${_inxml} ${ARGN}
+		VERBATIM
+	)
+	add_custom_command(
+		OUTPUT ${_outputprefix}.c
+		COMMAND ${GLIB_COMPILE_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/${_inxml} --target=${_outputprefix}.c --sourcedir=${CMAKE_CURRENT_SOURCE_DIR} --c-name ${_cname} --generate-source
+		DEPENDS ${_inxml} ${ARGN}
+		VERBATIM
+	)
+endmacro(glib_compile_resources)

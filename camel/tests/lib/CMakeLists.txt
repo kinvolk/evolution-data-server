@@ -12,7 +12,9 @@ set(SOURCES
 	address-data.h
 )
 
-add_library(cameltest STATIC ${SOURCES})
+add_library(cameltest STATIC EXCLUDE_FROM_ALL
+	${SOURCES}
+)
 
 add_dependencies(cameltest camel)
 
@@ -38,7 +40,7 @@ target_link_libraries(cameltest
 	${CAMEL_LDFLAGS}
 )
 
-add_library(cameltest-provider STATIC
+add_library(cameltest-provider STATIC EXCLUDE_FROM_ALL
 	camel-test-provider.c
 	camel-test-provider.h
 )
