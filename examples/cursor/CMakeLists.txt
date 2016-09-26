@@ -57,4 +57,4 @@ set(UI_FILES
 	cursor-slot.ui
 )
 
-glib_compile_resources(cursor-example-resources _cursor_example cursor-example.gresources.xml ${UI_FILES})
+glib_compile_resources(${CMAKE_CURRENT_SOURCE_DIR} cursor-example-resources _cursor_example cursor-example.gresources.xml ${UI_FILES})

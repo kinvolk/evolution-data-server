@@ -874,7 +874,7 @@ add_subdirectory(libedataserver)
 add_subdirectory(modules)
 add_subdirectory(private)
 add_subdirectory(po)
-#add_subdirectory(services)
+add_subdirectory(services)
 #add_subdirectory(tests)
 add_subdirectory(tools)
 

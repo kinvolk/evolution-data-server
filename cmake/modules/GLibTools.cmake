@@ -34,6 +34,10 @@
 # add_gsettings_schemas(_target _schema0 ...)
 #    Adds one or more GSettings schemas. The extension is supposed to be .gschema.xml. The schema file generation
 #    is added as a dependency of _target.
+#
+# glib_compile_resources _sourcedir _outputprefix _cname _inxml ...deps)
+#    Calls glib-compile-resources as defined in _inxml and using _outputprefix and_cname as other arguments
+#    beside _sourcedir. The optional arguments are other dependencies.
 
 include(PkgConfigEx)
 
@@ -200,16 +204,16 @@ if(NOT GLIB_COMPILE_RESOURCES)
 	message(FATAL_ERROR "Cannot find glib-compile-resources, which is required to build ${PROJECT_NAME}")
 endif(NOT GLIB_COMPILE_RESOURCES)
 
-macro(glib_compile_resources _outputprefix _cname _inxml)
+macro(glib_compile_resources _sourcedir _outputprefix _cname _inxml)
 	add_custom_command(
 		OUTPUT ${_outputprefix}.h
-		COMMAND ${GLIB_COMPILE_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/${_inxml} --target=${_outputprefix}.h --sourcedir=${CMAKE_CURRENT_SOURCE_DIR} --c-name ${_cname} --generate-header
+		COMMAND ${GLIB_COMPILE_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/${_inxml} --target=${_outputprefix}.h --sourcedir=${_sourcedir} --c-name ${_cname} --generate-header
 		DEPENDS ${_inxml} ${ARGN}
 		VERBATIM
 	)
 	add_custom_command(
 		OUTPUT ${_outputprefix}.c
-		COMMAND ${GLIB_COMPILE_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/${_inxml} --target=${_outputprefix}.c --sourcedir=${CMAKE_CURRENT_SOURCE_DIR} --c-name ${_cname} --generate-source
+		COMMAND ${GLIB_COMPILE_RESOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/${_inxml} --target=${_outputprefix}.c --sourcedir=${_sourcedir} --c-name ${_cname} --generate-source
 		DEPENDS ${_inxml} ${ARGN}
 		VERBATIM
 	)
