@@ -17,7 +17,9 @@ set(BASE_VERSION 3.24)
 # library names for backward compatibility.
 set(API_VERSION 1.2)
 
+# Required for FindIntltool module
 set(GETTEXT_PACKAGE ${PROJECT_NAME}-${BASE_VERSION})
+set(GETTEXT_PO_DIR ${CMAKE_SOURCE_DIR}/po)
 
 # ******************************
 # D-Bus versioning
@@ -211,6 +213,7 @@ include(PkgConfigEx)
 include(SetupBuildFlags)
 include(UninstallTarget)
 
+include(FindIntltool)
 include(FindKRB5)
 include(FindLDAP)
 include(FindPhonenumber)
@@ -870,7 +873,7 @@ add_subdirectory(libebackend)
 add_subdirectory(libedataserver)
 add_subdirectory(modules)
 add_subdirectory(private)
-#add_subdirectory(po)
+add_subdirectory(po)
 #add_subdirectory(services)
 #add_subdirectory(tests)
 add_subdirectory(tools)

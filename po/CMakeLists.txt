@@ -1,0 +1,2 @@
+intltool_process_po_files()
+intltool_add_pot_file_target()

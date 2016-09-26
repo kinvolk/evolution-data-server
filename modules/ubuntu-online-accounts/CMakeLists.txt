@@ -56,13 +56,17 @@ add_credentials_module(module-credentials-uoa
 # Data files
 # ******************************
 
-set(servicetype_files
+set(servicetype_files)
+set(servicetype_files_gen)
+list(APPEND servicetype_files
 	mail.service-type
 	calendar.service-type
 	contacts.service-type
 )
 
-set(service_files
+set(service_files)
+set(service_files_gen)
+list(APPEND service_files
 	google-gmail.service
 	google-calendar.service
 	google-contacts.service
@@ -71,33 +75,36 @@ set(service_files
 	yahoo-calendar.service
 )
 
-# TODO | FIXME
-#%.application: %.application.in
-#	$(AM_V_GEN) $(INTLTOOL_MERGE) --no-translations -x -u $< $@
-#
-#%.service-type: %.service-type.in
-#	$(AM_V_GEN) $(INTLTOOL_MERGE) --no-translations -x -u $< $@
-#
-#%.service: %.service.in
-#	$(AM_V_GEN) $(INTLTOOL_MERGE) --no-translations -x -u $< $@
+intltool_merge(evolution-data-server.application.in evolution-data-server.application --no-translations --xml-style  --utf8)
+intltool_merge(evolution-data-server-uoa.desktop.in evolution-data-server-uoa.desktop --desktop-style --utf8)
+
+foreach(_file IN LISTS servicetype_files)
+	intltool_merge(${_file}.in ${_file} --no-translations -x -u)
+	list(APPEND servicetype_files_gen ${CMAKE_CURRENT_BINARY_DIR}/${_file})
+endforeach(_file)
+
+foreach(_file IN LISTS service_files)
+	intltool_merge(${_file}.in ${_file} --no-translations -x -u)
+	list(APPEND service_files_gen ${CMAKE_CURRENT_BINARY_DIR}/${_file})
+endforeach(_file)
 
 desktopdir = ${SHARE_INSTALL_DIR}/applications
 pkg_check_variable(applicationdir libaccounts-glib applicationfilesdir)
 pkg_check_variable(servicetypedir libaccounts-glib servicetypefilesdir)
 pkg_check_variable(servicedir libaccounts-glib servicefilesdir)
 
-install(FILES evolution-data-server-uoa.desktop
-	DESTINATION ${desktopdir}
-)
-
-install(FILES evolution-data-server.application
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/evolution-data-server.application
 	DESTINATION ${applicationdir}
 )
 
-install(FILES ${servicetype_files}
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/evolution-data-server-uoa.desktop
+	DESTINATION ${desktopdir}
+)
+
+install(FILES ${servicetype_files_gen}
 	DESTINATION ${servicetypedir}
 )
 
-install(FILES ${service_files}
+install(FILES ${service_files_gen}
 	DESTINATION ${servicedir}
 )
