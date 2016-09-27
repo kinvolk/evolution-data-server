@@ -40,6 +40,7 @@
 #    beside _sourcedir. The optional arguments are other dependencies.
 
 include(PkgConfigEx)
+include(UninstallTarget)
 
 find_program(GLIB_MKENUMS glib-mkenums)
 if(NOT GLIB_MKENUMS)
@@ -171,15 +172,43 @@ set(GSETTINGS_SCHEMAS_DIR "${SHARE_INSTALL_DIR}/glib-2.0/schemas/")
 macro(add_gsettings_schemas _target _schema0)
 	foreach(_schema ${_schema0} ${ARGN})
 		string(REPLACE ".xml" ".valid" _outputfile "${_schema}")
+		get_filename_component(_outputfile "${_outputfile}" NAME)
+
+		get_filename_component(_schema_fullname "${_schema}" DIRECTORY)
+		get_filename_component(_schema_filename "${_schema}" NAME)
+		if(_schema_fullname STREQUAL "")
+			set(_schema_fullname ${CMAKE_CURRENT_SOURCE_DIR}/${_schema})
+		else(_schema_fullname STREQUAL "")
+			set(_schema_fullname ${_schema})
+		endif(_schema_fullname STREQUAL "")
+
 		add_custom_command(
 			OUTPUT ${_outputfile}
-			COMMAND ${GLIB_COMPILE_SCHEMAS} --strict --dry-run --schema-file=${CMAKE_CURRENT_SOURCE_DIR}/${_schema}
-			COMMAND cmake -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${_schema}" "${CMAKE_CURRENT_BINARY_DIR}/${_outputfile}"
+			COMMAND ${GLIB_COMPILE_SCHEMAS} --strict --dry-run --schema-file=${_schema_fullname}
+			COMMAND cmake -E copy_if_different "${_schema_fullname}" "${CMAKE_CURRENT_BINARY_DIR}/${_outputfile}"
+			DEPENDS ${_schema_fullname}
 			VERBATIM
 		)
-		add_custom_target(gsettings-schemas-${_schema} ALL DEPENDS ${_outputfile})
-		add_dependencies(${_target} gsettings-schemas-${_schema})
-		install(FILES ${_schema}
+		add_custom_target(gsettings-schemas-${_schema_filename} ALL DEPENDS ${_outputfile})
+		add_dependencies(${_target} gsettings-schemas-${_schema_filename})
+		if(ENABLE_SCHEMAS_COMPILE)
+			# This is very inefficient, because the glib-compile-schemas is callad as many times
+			# as the schema files are provided by the project, but there is no better way
+			# in CMake to run a code/script after the whole `make install`
+			install(CODE
+				"if(\"${_schema_fullname}\" IS_NEWER_THAN \"${GSETTINGS_SCHEMAS_DIR}/${_schema_filename}\")
+					message(STATUS \"Installing: ${GSETTINGS_SCHEMAS_DIR}/${_schema_filename}\")
+					execute_process(COMMAND cmake -E copy_if_different \"${_schema_fullname}\" \"${GSETTINGS_SCHEMAS_DIR}\"
+						COMMAND cmake -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\"
+					)
+				else()
+					message(STATUS \"Up-to-date: ${GSETTINGS_SCHEMAS_DIR}/${_schema_filename}\")
+				endif()
+				")
+		endif(ENABLE_SCHEMAS_COMPILE)
+
+		# Do both, to have 'uninstall' working properly
+		install(FILES ${_schema_fullname}
 			DESTINATION ${GSETTINGS_SCHEMAS_DIR})
 	endforeach(_schema)
 endmacro(add_gsettings_schemas)
@@ -191,13 +220,12 @@ endmacro(add_gsettings_schemas)
 #    after install. It's necessary to call it as the last command in the toplevel CMakeLists.txt,
 #    thus the compile runs when all the schemas are installed.
 #
-#macro(compile_gsettings_schemas)
-#	if(ENABLE_SCHEMAS_COMPILE)
-#		install(CODE
-#			"message(STATUS \"Compiling GSettings schemas at '${GSETTINGS_SCHEMAS_DIR}'\")
-#			execute_process(COMMAND cmake -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\")")
-#	endif(ENABLE_SCHEMAS_COMPILE)
-#endmacro(compile_gsettings_schemas)
+if(ENABLE_SCHEMAS_COMPILE)
+	add_custom_command(TARGET uninstall POST_BUILD
+		COMMAND cmake -E chdir . "${GLIB_COMPILE_SCHEMAS}" "${GSETTINGS_SCHEMAS_DIR}"
+		COMMENT "Recompile GSettings schemas in '${GSETTINGS_SCHEMAS_DIR}'"
+	)
+endif(ENABLE_SCHEMAS_COMPILE)
 
 find_program(GLIB_COMPILE_RESOURCES glib-compile-resources)
 if(NOT GLIB_COMPILE_RESOURCES)

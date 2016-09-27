@@ -112,6 +112,10 @@ set(webkit2gtk_minimum_version 2.11.91)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_SKIP_BUILD_RPATH OFF)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+# CMAKE_INSTALL_RPATH is set below
 
 # CMake modules
 include(CheckCCompilerFlag)
@@ -145,6 +149,8 @@ set(privdatadir "${SHARE_INSTALL_DIR}/${PROJECT_NAME}")
 set(privincludedir "${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}")
 set(privlibdir "${LIB_INSTALL_DIR}/${PROJECT_NAME}")
 set(privlibexecdir "${LIBEXEC_INSTALL_DIR}/${PROJECT_NAME}")
+
+SET(CMAKE_INSTALL_RPATH "${LIB_INSTALL_DIR}:${privlibdir}")
 
 if(WIN32)
 	# On Win32 there is no "rpath" mechanism. We install the private
@@ -209,6 +215,7 @@ include(CheckTarget)
 include(DistTarget)
 include(GLibTools)
 include(GObjectIntrospection)
+include(InstalledTests)
 include(PkgConfigEx)
 include(SetupBuildFlags)
 include(UninstallTarget)
@@ -256,6 +263,18 @@ find_program(PYTHON python)
 if(NOT PYTHON)
 	message(FATAL_ERROR "You need python to build ${PROJECT_NAME}")
 endif(NOT PYTHON)
+
+# ******************************
+# db_load checking, it's optional
+# ******************************
+
+find_program(DB_LOAD db_load)
+if(DB_LOAD)
+	set(HAVE_DB_LOAD ON)
+else(DB_LOAD)
+	set(HAVE_DB_LOAD OFF)
+	message(WARNING "db_load not found, some unit tests will not be run")
+endif(DB_LOAD)
 
 # ******************************
 # deflateInit is a #define, use deflateEnd instead
@@ -869,13 +888,14 @@ add_subdirectory(art)
 add_subdirectory(addressbook)
 add_subdirectory(calendar)
 add_subdirectory(camel)
+add_subdirectory(data)
 add_subdirectory(libebackend)
 add_subdirectory(libedataserver)
 add_subdirectory(modules)
 add_subdirectory(private)
 add_subdirectory(po)
 add_subdirectory(services)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 add_subdirectory(tools)
 
 if(HAVE_GTK)

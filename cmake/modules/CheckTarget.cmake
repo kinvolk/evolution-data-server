@@ -10,7 +10,7 @@
 
 include(CTest)
 
-# Disable this not have verbose tests
+# Disable this to not have verbose tests
 set(CMAKE_CTEST_COMMAND ${CMAKE_CTEST_COMMAND} -V)
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})

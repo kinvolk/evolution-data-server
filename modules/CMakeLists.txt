@@ -42,6 +42,7 @@ macro(add_simple_module _name _sourcesvar _depsvar _defsvar _cflagsvar _incdirsv
 
 	target_link_libraries(${_name}
 		${DEPENDENCIES}
+		${${_depsvar}}
 		${BACKEND_LDFLAGS}
 		${DATA_SERVER_LDFLAGS}
 		${${_ldflagsvar}}
