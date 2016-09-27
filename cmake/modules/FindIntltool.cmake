@@ -115,17 +115,37 @@ macro(intltool_process_po_files)
 endmacro(intltool_process_po_files)
 
 macro(intltool_merge _in_filename _out_filename)
-	get_filename_component(_path ${_in_filename} DIRECTORY)
+	set(_in ${_in_filename})
+	set(_out ${_out_filename})
+
+	get_filename_component(_path ${_in} DIRECTORY)
 	if(_path STREQUAL "")
-		set(_in_filename "${CMAKE_CURRENT_SOURCE_DIR}/${_in_filename}")
+		set(_in ${CMAKE_CURRENT_SOURCE_DIR}/${_in})
 	endif(_path STREQUAL "")
 
-	get_filename_component(_path ${_out_filename} DIRECTORY)
+	get_filename_component(_path ${_out} DIRECTORY)
 	if(_path STREQUAL "")
-		set(_out_filename "${CMAKE_CURRENT_BINARY_DIR}/${_out_filename}")
+		set(_out ${CMAKE_CURRENT_BINARY_DIR}/${_out})
 	endif(_path STREQUAL "")
 
-	add_custom_command(OUTPUT ${_out_filename}
-		COMMAND ${INTLTOOL_MERGE} ${ARGN} "${GETTEXT_PO_DIR}" "${_in_filename}" "${_out_filename}"
-	)
+	set(_has_no_translations OFF)
+	set(_args)
+	foreach(_arg ${ARGN})
+		list(APPEND _args "${_arg}")
+		if(_arg STREQUAL "--no-translations")
+			set(_has_no_translations ON)
+		endif(_arg STREQUAL "--no-translations")
+	endforeach(_arg)
+
+	if(_has_no_translations)
+		add_custom_command(OUTPUT ${_out}
+			COMMAND ${INTLTOOL_MERGE} ${_args} --quiet "${_in}" "${_out}"
+			DEPENDS ${_in}
+		)
+	else(_has_no_translations)
+		add_custom_command(OUTPUT ${_out}
+			COMMAND ${INTLTOOL_MERGE} ${_args} --quiet "${GETTEXT_PO_DIR}" "${_in}" "${_out}"
+			DEPENDS ${_in}
+		)
+	endif(_has_no_translations)
 endmacro(intltool_merge)
