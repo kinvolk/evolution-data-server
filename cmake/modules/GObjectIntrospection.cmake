@@ -58,6 +58,15 @@ macro(gir_construct_names _prefix _version _out_girname _out_varsprefix)
 	set(${_out_varsprefix} ${_varsprefix})
 endmacro(gir_construct_names)
 
+macro(gir_girfilename_to_target _outvar _girfilename)
+	set(${_outvar})
+	foreach(_gir_name "${_girfilename}" ${ARGN})
+		string(REPLACE "-" "_" _gir_name "${_gir_name}")
+		string(REPLACE "." "_" _gir_name "${_gir_name}")
+		list(APPEND ${_outvar} gir-girs-${_gir_name})
+	endforeach(_gir_name)
+endmacro(gir_girfilename_to_target)
+
 # the macro does something only if ENABLE_INTROSPECTION is ON
 macro(gir_add_introspection gir)
 	if(ENABLE_INTROSPECTION)
@@ -199,7 +208,7 @@ macro(gir_add_introspection_simple gir_library pkg_export_prefix gir_library_ver
 		${_gir_identifies_prefixes}
 		${_gir_deps}
 		--pkg-export ${pkg_export_prefix}-${gir_library_version}
-		--c-include="${c_include}"
+		--c-include=${c_include}
 		--cflags-begin
 		${${gir_vars_prefix}_CFLAGS}
 		--cflags-end
