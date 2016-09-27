@@ -1,2 +1,1 @@
-intltool_process_po_files()
-intltool_add_pot_file_target()
+intltool_setup_po_dir()

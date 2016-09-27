@@ -12,17 +12,25 @@
 #
 # The below provided macros require GETTEXT_PACKAGE to be set.
 #
+# intltool_add_check_potfiles_target()
+#    Adds a check-potfiles target, which verifies that all files with translations
+#    are added in the POTFILES.in file inside GETTEXT_PO_DIR. This macro can be called
+#    only inside GETTEXT_PO_DIR.
+#
 # intltool_add_pot_file_target()
 #    Creates a new target pot-file, which generates ${GETTEXT_PACKAGE}.pot file into
 #    the CMAKE_CURERNT_BINARY_DIR. This target is not part of ALL.
 #    This can be called only inside GETTEXT_PO_DIR.
 #
-# intltool_process_po_files(_po_files_var)
-#    Processes all files in the list variable _po_files_var, which are
-#    located in CMAKE_CURRENT_SOURCE_DIR and generates .gmo files for them
+# intltool_process_po_files()
+#    Processes all files in the GETTEXT_PO_DIR and generates .gmo files for them
 #    in CMAKE_CURRENT_BINARY_DIR. These are added into a new target gmo-files.
 #    It also installs them into proper location under LOCALE_INSTALL_DIR.
 #    This can be called only inside GETTEXT_PO_DIR.
+#
+# intltool_setup_po_dir()
+#    Shortcut to setup intltool's po/ directory by adding all custom targets
+#    and such. this can be called only inside GETTEXT_PO_DIR.
 #
 # intltool_merge(_in_filename _out_filename ...args)
 #    Adds rule to call intltool-merge. The args are optional arguments.
@@ -62,6 +70,17 @@ find_program(INTLTOOL_MERGE intltool-merge)
 if(NOT INTLTOOL_MERGE)
 	message(FATAL_ERROR "intltool-merge not found. Please install it (usually part of an 'intltool' package)")
 endif(NOT INTLTOOL_MERGE)
+
+macro(intltool_add_check_potfiles_target)
+	if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL GETTEXT_PO_DIR)
+		message(FATAL_ERROR "intltool_add_pot_file_target() can be called only inside GETTEXT_PO_DIR ('${GETTEXT_PO_DIR}'), but it is called inside '${CMAKE_CURRENT_SOURCE_DIR}' instead")
+	endif(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL GETTEXT_PO_DIR)
+
+	add_custom_target(check-potfiles
+		COMMAND ${INTLTOOL_UPDATE} -m
+		WORKING_DIRECTORY ${GETTEXT_PO_DIR}
+	)
+endmacro(intltool_add_check_potfiles_target)
 
 macro(intltool_add_pot_file_target)
 	if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL GETTEXT_PO_DIR)
@@ -113,6 +132,16 @@ macro(intltool_process_po_files)
 		DEPENDS ${LINGUAS_GMO}
 	)
 endmacro(intltool_process_po_files)
+
+macro(intltool_setup_po_dir)
+	if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL GETTEXT_PO_DIR)
+		message(FATAL_ERROR "intltool_setup_po_dir() can be called only inside GETTEXT_PO_DIR ('${GETTEXT_PO_DIR}'), but it is called inside '${CMAKE_CURRENT_SOURCE_DIR}' instead")
+	endif(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL GETTEXT_PO_DIR)
+
+	intltool_add_check_potfiles_target()
+	intltool_add_pot_file_target()
+	intltool_process_po_files()
+endmacro(intltool_setup_po_dir)
 
 macro(intltool_merge _in_filename _out_filename)
 	set(_in ${_in_filename})
