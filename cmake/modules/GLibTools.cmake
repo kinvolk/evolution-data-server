@@ -170,6 +170,8 @@ endif(NOT GLIB_COMPILE_SCHEMAS)
 set(GSETTINGS_SCHEMAS_DIR "${SHARE_INSTALL_DIR}/glib-2.0/schemas/")
 
 macro(add_gsettings_schemas _target _schema0)
+	set(_install_code)
+
 	foreach(_schema ${_schema0} ${ARGN})
 		string(REPLACE ".xml" ".valid" _outputfile "${_schema}")
 		get_filename_component(_outputfile "${_outputfile}" NAME)
@@ -192,25 +194,26 @@ macro(add_gsettings_schemas _target _schema0)
 		add_custom_target(gsettings-schemas-${_schema_filename} ALL DEPENDS ${_outputfile})
 		add_dependencies(${_target} gsettings-schemas-${_schema_filename})
 		if(ENABLE_SCHEMAS_COMPILE)
-			# This is very inefficient, because the glib-compile-schemas is callad as many times
-			# as the schema files are provided by the project, but there is no better way
-			# in CMake to run a code/script after the whole `make install`
-			install(CODE
-				"if(\"${_schema_fullname}\" IS_NEWER_THAN \"${GSETTINGS_SCHEMAS_DIR}/${_schema_filename}\")
-					message(STATUS \"Installing: ${GSETTINGS_SCHEMAS_DIR}/${_schema_filename}\")
-					execute_process(COMMAND cmake -E copy_if_different \"${_schema_fullname}\" \"${GSETTINGS_SCHEMAS_DIR}\"
-						COMMAND cmake -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\"
-					)
-				else()
-					message(STATUS \"Up-to-date: ${GSETTINGS_SCHEMAS_DIR}/${_schema_filename}\")
-				endif()
-				")
+			# this is required to compile gsettings schemas like after 'make install,
+			# because there is no better way in CMake to run a code/script after
+			# the whole `make install`
+			set(_install_code "${_install_code}
+				COMMAND cmake -E copy_if_different \"${_schema_fullname}\" \"${GSETTINGS_SCHEMAS_DIR}\""
+			)
 		endif(ENABLE_SCHEMAS_COMPILE)
 
 		# Do both, to have 'uninstall' working properly
 		install(FILES ${_schema_fullname}
 			DESTINATION ${GSETTINGS_SCHEMAS_DIR})
 	endforeach(_schema)
+
+	if(_install_code)
+		# Compile gsettings schemas and ensure that all of them are in the place.
+		install(CODE
+			"execute_process(${_install_code}
+				COMMAND cmake -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\"
+			)")
+	endif(_install_code)
 endmacro(add_gsettings_schemas)
 
 # This is called too early, when the schemas are not installed yet during `make install`
