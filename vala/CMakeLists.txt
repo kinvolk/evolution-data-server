@@ -35,6 +35,7 @@ if(TARGET ${gir_deps})
 			--metadatadir=${CMAKE_CURRENT_SOURCE_DIR}
 			${gir_fullname}
 		DEPENDS camel-${API_VERSION}.deps
+			${gir_deps}
 			${gir_fullname}
 	)
 endif(TARGET ${gir_deps})
@@ -61,6 +62,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libedataserver-${API_VERSI
 		--metadatadir=${CMAKE_CURRENT_SOURCE_DIR}
 		${gir_fullname}
 	DEPENDS libedataserver-${API_VERSION}.deps
+		${gir_deps}
 		${gir_fullname}
 )
 
@@ -89,8 +91,9 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libebook-contacts-${API_VE
 		${CMAKE_CURRENT_SOURCE_DIR}/libebook-contacts-${API_VERSION}-custom.vala
 	DEPENDS libebook-contacts-${API_VERSION}.deps
 		libebook-contacts-${API_VERSION}-custom.vala
-		${gir_fullname}
 		${CMAKE_CURRENT_BINARY_DIR}/libedataserver-${API_VERSION}.vapi
+		${gir_fullname}
+		${gir_deps}
 )
 
 # ***********************************
@@ -118,9 +121,10 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libebook-${API_VERSION}.va
 		--metadatadir=${CMAKE_CURRENT_SOURCE_DIR}
 		${gir_fullname}
 	DEPENDS libebook-${API_VERSION}.deps
-		${gir_fullname}
 		${CMAKE_CURRENT_BINARY_DIR}/libedataserver-${API_VERSION}.vapi
 		${CMAKE_CURRENT_BINARY_DIR}/libebook-contacts-${API_VERSION}.vapi
+		${gir_fullname}
+		${gir_deps}
 )
 
 # ***********************************

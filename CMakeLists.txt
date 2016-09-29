@@ -21,6 +21,18 @@ set(API_VERSION 1.2)
 set(GETTEXT_PACKAGE ${PROJECT_NAME}-${BASE_VERSION})
 set(GETTEXT_PO_DIR ${CMAKE_SOURCE_DIR}/po)
 
+# Required for 'disttest' and 'ditcheck' of DistTarget module
+set(PROJECT_DISTCONFIGURE_PARAMS
+	-DENABLE_GOA=ON
+	-DENABLE_UOA=ON
+	-DENABLE_EXAMPLES=ON
+	-DENABLE_INTROSPECTION=ON
+	-DENABLE_VALA_BINDINGS=ON
+	-DENABLE_INSTALLED_TESTS=ON
+	-DENABLE_GTK_DOC=ON
+	-DWITH_PRIVATE_DOCS=ON
+)
+
 # ******************************
 # D-Bus versioning
 # ******************************
@@ -212,7 +224,7 @@ unset(optupper)
 
 include(CodeCoverageGCOV)
 include(CheckTarget)
-include(DistTarget)
+include(DistTargets)
 include(GLibTools)
 include(GObjectIntrospection)
 include(GtkDoc)

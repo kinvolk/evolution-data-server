@@ -95,6 +95,7 @@ macro(add_gtkdoc _module _namespace _deprecated_guards _srcdirsvar _depsvar _ign
 			--extra-dir=..
 			--html-dir="${OUTPUT_DOCDIR}"
 
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 		DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${_module}-docs.sgml"
 			${_filedeps}
 		COMMENT "Generating ${_module} documentation"
