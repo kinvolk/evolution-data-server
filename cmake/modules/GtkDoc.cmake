@@ -1,4 +1,19 @@
 # GtkDoc.cmake
+#
+# Macros to support develper documentation build from sources with gtk-doc.
+#
+# add_gtkdoc(_module _namespace _deprecated_guards _srcdirsvar _depsvar _ignoreheadersvar)
+#    Adds rules to build developer documentation using gtk-doc for some part.
+#    Arguments:
+#       _module - the module name, like 'camel'; it expects ${_part}-docs.sgml.in in the CMAKE_CURRENT_SOURCE_DIR
+#       _namespace - namespace for symbols
+#       _deprecated_guards - define name, which guards deprecated symbols
+#       _srcdirsvar - variable with dirs where the source files are located
+#       _depsvar - a variable with dependencies (targets)
+#       _ignoreheadersvar - a variable with a set of header files to ignore
+#
+# It also adds custom target gtkdoc-rebuild-${_module}-sgml to rebuild the sgml.in
+# file based on the current sources.
 
 include(PrintableOptions)
 
@@ -18,33 +33,13 @@ if(NOT (GTKDOC_SCAN AND GTKDOC_MKDB AND GTKDOC_MKHTML AND GTKDOC_FIXXREF))
 	return()
 endif()
 
-# To regenerate libical-glib-docs.xml.in from current sources use these steps:
-#   a) delete ${CMAKE_CURRENT_BINARY_DIR}/libical-glib-docs.xml
-#   b) go to ${CMAKE_CURRENT_BINARY_DIR} and run command:
-#      gtkdoc-scan --module=libical-glib --source-dir=../../../src/libical-glib/
-#                  --deprecated-guards="LIBICAL_GLIB_DISABLE_DEPRECATED"
-#                  --ignore-headers=libical-glib-private.h --rebuild-sections --rebuild-types
-#   c) generate the libical-glib-docs.xml file with command:
-#      gtkdoc-mkdb --module=libical-glib --output-format=xml
-#                  --source-dir=../../../src/libical-glib/ --xml-mode --name-space=i-cal
-#   d) copy the newly created libical-glib-docs.xml
-#      to ${CURRENT_SOURCE_DIR}/libical-glib-docs.xml.in
-#   e) compare the changes in the file and return back what should be left,
-#      like the replacement of the "[Insert title here]" and the <bookinfo/> content
-
-if(NOT TARGET gtkdoc)
+if(NOT TARGET gtkdocs)
 	add_custom_target(gtkdocs ALL)
-endif(NOT TARGET gtkdoc)
+endif(NOT TARGET gtkdocs)
 
-# add_gtkdoc_rules
-#    Add rules to build developer documentation using gtk-doc for some part.
-#    Arguments:
-#       _module - the module name, like 'camel'; it expects ${_part}-docs.sgml.in in the CMAKE_CURRENT_SOURCE_DIR
-#       _namespace - namespace for symbols
-#       _deprecated_guards - define name, which guards deprecated symbols
-#       _srcdirsvar - variable with dirs where the source files are located
-#       _depsvar - a variable with dependencies (targets)
-#       _ignoreheadersvar - a variable with a set of header files to ignore
+if(NOT TARGET gtkdoc-rebuild-sgmls)
+	add_custom_target(gtkdoc-rebuild-sgmls)
+endif(NOT TARGET gtkdoc-rebuild-sgmls)
 
 macro(add_gtkdoc _module _namespace _deprecated_guards _srcdirsvar _depsvar _ignoreheadersvar)
 	configure_file(
@@ -105,17 +100,50 @@ macro(add_gtkdoc _module _namespace _deprecated_guards _srcdirsvar _depsvar _ign
 		COMMENT "Generating ${_module} documentation"
 	)
 
-	add_custom_target(${_module}-gtkdoc
+	add_custom_target(gtkdoc-${_module}
 		DEPENDS html/index.html
 	)
 
 	if(${_depsvar})
-		add_dependencies(${_module}-gtkdoc ${${_depsvar}})
+		add_dependencies(gtkdoc-${_module} ${${_depsvar}})
 	endif(${_depsvar})
 
-	add_dependencies(gtkdocs ${_module}-gtkdoc)
+	add_dependencies(gtkdocs gtkdoc-${_module})
 
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
 		DESTINATION ${OUTPUT_DOCDIR}
 	)
+
+	# ***************************************
+	# sgml.in file rebuild, unconditional
+	# ***************************************
+	add_custom_target(gtkdoc-rebuild-${_module}-sgml
+		COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/tmp"
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/tmp"
+
+		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_BINARY_DIR}/tmp"
+			${GTKDOC_SCAN}
+			--module=${_module}
+			--deprecated-guards="${_deprecated_guards}"
+			--ignore-headers="${_ignore_headers}"
+			--rebuild-sections
+			--rebuild-types
+			${_srcdirs}
+
+		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_BINARY_DIR}/tmp"
+			${GTKDOC_MKDB}
+			--module=${_module}
+			--name-space=${_namespace}
+			--main-sgml-file="${CMAKE_CURRENT_BINARY_DIR}/tmp/${_module}-docs.sgml"
+			--sgml-mode
+			--output-format=xml
+			${_srcdirs}
+
+		COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/tmp/${_module}-docs.sgml ${CMAKE_CURRENT_SOURCE_DIR}/${_module}-docs.sgml.in
+
+		COMMAND ${CMAKE_COMMAND} -E echo "File '${CMAKE_CURRENT_SOURCE_DIR}/${_module}-docs.sgml.in' overwritten, make sure you replace generated strings with proper content before committing."
+	)
+
+	add_dependencies(gtkdoc-rebuild-sgmls gtkdoc-rebuild-${_module}-sgml)
+
 endmacro(add_gtkdoc)
