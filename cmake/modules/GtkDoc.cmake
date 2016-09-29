@@ -65,7 +65,7 @@ macro(add_gtkdoc _module _namespace _deprecated_guards _srcdirsvar _depsvar _ign
 
 	set(_mkhtml_prefix "")
 	if(APPLE)
-		set(_mkhtml_prefix "cmake -E env XML_CATALOG_FILES=\"/usr/local/etc/xml/catalog\"")
+		set(_mkhtml_prefix "${CMAKE_COMMAND} -E env XML_CATALOG_FILES=\"/usr/local/etc/xml/catalog\"")
 	endif(APPLE)
 
 	add_custom_command(OUTPUT html/index.html

@@ -187,7 +187,7 @@ macro(add_gsettings_schemas _target _schema0)
 		add_custom_command(
 			OUTPUT ${_outputfile}
 			COMMAND ${GLIB_COMPILE_SCHEMAS} --strict --dry-run --schema-file=${_schema_fullname}
-			COMMAND cmake -E copy_if_different "${_schema_fullname}" "${CMAKE_CURRENT_BINARY_DIR}/${_outputfile}"
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_schema_fullname}" "${CMAKE_CURRENT_BINARY_DIR}/${_outputfile}"
 			DEPENDS ${_schema_fullname}
 			VERBATIM
 		)
@@ -198,7 +198,7 @@ macro(add_gsettings_schemas _target _schema0)
 			# because there is no better way in CMake to run a code/script after
 			# the whole `make install`
 			set(_install_code "${_install_code}
-				COMMAND cmake -E copy_if_different \"${_schema_fullname}\" \"${GSETTINGS_SCHEMAS_DIR}\""
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${_schema_fullname}\" \"${GSETTINGS_SCHEMAS_DIR}\""
 			)
 		endif(ENABLE_SCHEMAS_COMPILE)
 
@@ -211,7 +211,7 @@ macro(add_gsettings_schemas _target _schema0)
 		# Compile gsettings schemas and ensure that all of them are in the place.
 		install(CODE
 			"execute_process(${_install_code}
-				COMMAND cmake -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\"
+				COMMAND ${CMAKE_COMMAND} -E chdir . \"${GLIB_COMPILE_SCHEMAS}\" \"${GSETTINGS_SCHEMAS_DIR}\"
 			)")
 	endif(_install_code)
 endmacro(add_gsettings_schemas)
@@ -225,7 +225,7 @@ endmacro(add_gsettings_schemas)
 #
 if(ENABLE_SCHEMAS_COMPILE)
 	add_custom_command(TARGET uninstall POST_BUILD
-		COMMAND cmake -E chdir . "${GLIB_COMPILE_SCHEMAS}" "${GSETTINGS_SCHEMAS_DIR}"
+		COMMAND ${CMAKE_COMMAND} -E chdir . "${GLIB_COMPILE_SCHEMAS}" "${GSETTINGS_SCHEMAS_DIR}"
 		COMMENT "Recompile GSettings schemas in '${GSETTINGS_SCHEMAS_DIR}'"
 	)
 endif(ENABLE_SCHEMAS_COMPILE)

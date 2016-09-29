@@ -82,14 +82,14 @@ build_only_installable_test(setup-migration-test
 # manually compiled and used with older builds of EDS.
 set(_use_db_version "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 add_custom_target(setup-migration
-	COMMAND cmake -E echo "Setting up new migration sandbox in ${CMAKE_SOURCE_DIR}/tests/book-migration/db/${_use_db_version}..."
+	COMMAND ${CMAKE_COMMAND} -E echo "Setting up new migration sandbox in ${CMAKE_SOURCE_DIR}/tests/book-migration/db/${_use_db_version}..."
 	COMMAND ${CMAKE_BINARY_DIR}/tests/book-migration/setup-migration-test
 		--use-test-sandbox --book-id ${_use_db_version}
 		--contacts-directory ${CMAKE_SOURCE_DIR}/tests/book-migration/vcards
-	COMMAND cmake -E make_directory ${CMAKE_SOURCE_DIR}/tests/book-migration/db/${_use_db_version}
-	COMMAND cmake -E copy ${CMAKE_BINARY_DIR}/tests/test-server-utils/cache/evolution/addressbook/${_use_db_version}/contacts.db
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/tests/book-migration/db/${_use_db_version}
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests/test-server-utils/cache/evolution/addressbook/${_use_db_version}/contacts.db
 		${CMAKE_SOURCE_DIR}/tests/book-migration/db/${_use_db_version}/
-	COMMAND cmake -E echo "Done."
+	COMMAND ${CMAKE_COMMAND} -E echo "Done."
 	DEPENDS setup-migration-test
 )
 

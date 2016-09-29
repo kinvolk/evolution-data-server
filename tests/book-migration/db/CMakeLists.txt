@@ -11,7 +11,7 @@ if(HAVE_DB_LOAD)
 
 	foreach(_ver ${GENERATED_DBS_VERSIONS})
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_ver}/addressbook.db
-			COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${_ver}
+			COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${_ver}
 			COMMAND ${DB_LOAD} -f ${CMAKE_CURRENT_SOURCE_DIR}/${_ver}/addressbook.dump ${CMAKE_CURRENT_BINARY_DIR}/${_ver}/addressbook.db
 			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_ver}/addressbook.dump
 		)
