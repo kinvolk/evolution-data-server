@@ -68,6 +68,7 @@ macro(gir_girfilename_to_target _outvar _girfilename)
 endmacro(gir_girfilename_to_target)
 
 # the macro does something only if ENABLE_INTROSPECTION is ON
+# optionally ${_gir_name}_SKIP_TYPELIB can be set to ON to not build .typelib file, only the .gir file
 macro(gir_add_introspection gir)
 	if(ENABLE_INTROSPECTION)
 		set(_gir_girs)
@@ -129,23 +130,24 @@ macro(gir_add_introspection gir)
 		)
 		list(APPEND _gir_girs ${CMAKE_CURRENT_BINARY_DIR}/${gir})
 		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${gir} DESTINATION ${SHARE_INSTALL_DIR}/gir-1.0)
-
-		string(REPLACE ".gir" ".typelib" _typelib "${gir}")
-		add_custom_command(
-			COMMAND ${G_IR_COMPILER}
-				${INTROSPECTION_COMPILER_ARGS}
-				--includedir=.
-				${CMAKE_CURRENT_BINARY_DIR}/${gir}
-				-o ${CMAKE_CURRENT_BINARY_DIR}/${_typelib}
-			DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${gir}
-			OUTPUT ${_typelib}
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-		)
-		list(APPEND _gir_typelibs ${CMAKE_CURRENT_BINARY_DIR}/${_typelib})
-		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${_typelib} DESTINATION ${LIB_INSTALL_DIR}/girepository-1.0)
-
 		add_custom_target(gir-girs-${_gir_name} ALL DEPENDS ${_gir_girs})
-		add_custom_target(gir-typelibs-${_gir_name} ALL DEPENDS ${_gir_typelibs})
+
+		if(NOT DEFINED ${_gir_name}_SKIP_TYPELIB OR NOT ${${_gir_name}_SKIP_TYPELIB})
+			string(REPLACE ".gir" ".typelib" _typelib "${gir}")
+			add_custom_command(
+				COMMAND ${G_IR_COMPILER}
+					${INTROSPECTION_COMPILER_ARGS}
+					--includedir=.
+					${CMAKE_CURRENT_BINARY_DIR}/${gir}
+					-o ${CMAKE_CURRENT_BINARY_DIR}/${_typelib}
+				DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${gir}
+				OUTPUT ${_typelib}
+				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+			)
+			list(APPEND _gir_typelibs ${CMAKE_CURRENT_BINARY_DIR}/${_typelib})
+			install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${_typelib} DESTINATION ${LIB_INSTALL_DIR}/girepository-1.0)
+			add_custom_target(gir-typelibs-${_gir_name} ALL DEPENDS ${_gir_typelibs})
+		endif(NOT DEFINED ${_gir_name}_SKIP_TYPELIB OR NOT ${${_gir_name}_SKIP_TYPELIB})
 	endif(ENABLE_INTROSPECTION)
 endmacro(gir_add_introspection)
 

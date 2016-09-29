@@ -10,35 +10,34 @@ set(valafiles
 add_custom_target(vala ALL)
 
 # ***********************************
-# camel (currently conditionally compiled)
+# camel
 # ***********************************
 
 set(gir_fullname ${CMAKE_BINARY_DIR}/camel/Camel-${API_VERSION}.gir)
 gir_girfilename_to_target(gir_deps Camel-${API_VERSION}.gir)
-if(TARGET ${gir_deps})
-	list(APPEND valafiles
-		${CMAKE_CURRENT_SOURCE_DIR}/camel-${API_VERSION}.deps
-		${CMAKE_CURRENT_BINARY_DIR}/camel-${API_VERSION}.vapi
-	)
 
-	add_dependencies(vala ${gir_deps})
+list(APPEND valafiles
+	${CMAKE_CURRENT_SOURCE_DIR}/camel-${API_VERSION}.deps
+	${CMAKE_CURRENT_BINARY_DIR}/camel-${API_VERSION}.vapi
+)
 
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/camel-${API_VERSION}.vapi
-		COMMAND ${VAPIGEN}
-			--vapidir=${CMAKE_CURRENT_SOURCE_DIR}
-			--vapidir=${CMAKE_CURRENT_BINARY_DIR}
-			--girdir=${CMAKE_BINARY_DIR}/camel
-			--pkg gio-2.0
-			--pkg libxml-2.0
-			--pkg posix
-			--library camel-${API_VERSION}
-			--metadatadir=${CMAKE_CURRENT_SOURCE_DIR}
-			${gir_fullname}
-		DEPENDS camel-${API_VERSION}.deps
-			${gir_deps}
-			${gir_fullname}
-	)
-endif(TARGET ${gir_deps})
+add_dependencies(vala ${gir_deps})
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/camel-${API_VERSION}.vapi
+	COMMAND ${VAPIGEN}
+		--vapidir=${CMAKE_CURRENT_SOURCE_DIR}
+		--vapidir=${CMAKE_CURRENT_BINARY_DIR}
+		--girdir=${CMAKE_BINARY_DIR}/camel
+		--pkg gio-2.0
+		--pkg libxml-2.0
+		--pkg posix
+		--library camel-${API_VERSION}
+		--metadatadir=${CMAKE_CURRENT_SOURCE_DIR}
+		${gir_fullname}
+	DEPENDS camel-${API_VERSION}.deps
+		${gir_deps}
+		${gir_fullname}
+)
 
 # ***********************************
 # libedataserver
