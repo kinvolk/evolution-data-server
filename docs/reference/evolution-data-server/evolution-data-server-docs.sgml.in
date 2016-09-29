@@ -275,7 +275,7 @@
 
   <part id="examples">
     <title>Examples</title>
-    <xi:include href="xml/eds-cursor-example.sgml"/>
+    <xi:include href="xml/evolution-data-server-cursor-example.sgml"/>
   </part>
 
   <part id="unit-testing">

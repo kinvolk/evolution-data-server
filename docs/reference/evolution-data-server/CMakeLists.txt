@@ -1,5 +1,5 @@
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/eds-cursor-example.sgml.in
-	${CMAKE_CURRENT_BINARY_DIR}/xml/eds-cursor-example.sgml
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/evolution-data-server-cursor-example.sgml.in
+	${CMAKE_CURRENT_BINARY_DIR}/xml/evolution-data-server-cursor-example.sgml
 	@ONLY
 )
 
@@ -41,4 +41,4 @@ set(IGNORE_HEADERS
 	ximian-vcard.h
 )
 
-add_gtkdoc(eds e "EDS_DISABLE_DEPRECATED" SOURCEDIRS DEPENDENCIES IGNORE_HEADERS)
+add_gtkdoc(evolution-data-server e "EDS_DISABLE_DEPRECATED" SOURCEDIRS DEPENDENCIES IGNORE_HEADERS)
