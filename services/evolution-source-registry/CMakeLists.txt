@@ -47,7 +47,7 @@ endif(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/builtin)
 
 set(builtin_sources)
 foreach(_file ${builtin_sources_files})
-	intltool_merge(${CMAKE_CURRENT_SOURCE_DIR}/builtin/${_file}.in ${CMAKE_CURRENT_BINARY_DIR}/builtin/${_file} -d -u -c ${CMAKE_BINARY_DIR}/po/.intltool-merge-cache)
+	intltool_merge(${CMAKE_CURRENT_SOURCE_DIR}/builtin/${_file}.in ${CMAKE_CURRENT_BINARY_DIR}/builtin/${_file} -d -u)
 	list(APPEND builtin_sources ${CMAKE_CURRENT_BINARY_DIR}/builtin/${_file})
 endforeach(_file)
 

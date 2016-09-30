@@ -29,7 +29,7 @@ macro(pkg_check_modules_for_option _option_name _option_description _prefix _mod
 	pkg_check_modules(${_prefix} ${_module0} ${ARGN})
 
 	if(NOT ${_prefix}_FOUND)
-		message(FATAL_ERROR "Necessary libraries not or not enough version. If you want to disable ${_option_description}, please use -D${_option_name}=OFF argument to cmake command.")
+		message(FATAL_ERROR "Necessary libraries not found or not enough version. If you want to disable ${_option_description}, please use -D${_option_name}=OFF argument to cmake command.")
 	endif(NOT ${_prefix}_FOUND)
 endmacro()
 

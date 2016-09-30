@@ -36,6 +36,10 @@
 #    Adds rule to call intltool-merge. The args are optional arguments.
 #    This can be called in any folder, only the GETTEXT_PO_DIR should
 #    be properly set, otherwise the call will fail.
+#
+# add_appdata_file(_infilename _outfilename)
+#    A shortcut to call intltool-merge() for an appdata file and install it
+#    to ${SHARE_INSTALL_DIR}/appdata
 
 include(FindGettext)
 
@@ -173,8 +177,33 @@ macro(intltool_merge _in_filename _out_filename)
 		)
 	else(_has_no_translations)
 		add_custom_command(OUTPUT ${_out}
-			COMMAND ${INTLTOOL_MERGE} ${_args} --quiet "${GETTEXT_PO_DIR}" "${_in}" "${_out}"
+			COMMAND ${INTLTOOL_MERGE} ${_args} --quiet --cache="${CMAKE_BINARY_DIR}/po/.intltool-merge-cache" "${GETTEXT_PO_DIR}" "${_in}" "${_out}"
 			DEPENDS ${_in}
 		)
 	endif(_has_no_translations)
 endmacro(intltool_merge)
+
+macro(add_appdata_file _infilename _outfilename)
+	if(NOT TARGET appdata-files)
+		add_custom_target(appdata-files ALL)
+	endif(NOT TARGET appdata-files)
+
+	set(_out ${_outfilename})
+	get_filename_component(_outtarget ${_out} NAME_WE)
+	get_filename_component(_path ${_out} DIRECTORY)
+	if(_path STREQUAL "")
+		set(_out ${CMAKE_CURRENT_BINARY_DIR}/${_out})
+	endif(_path STREQUAL "")
+
+	intltool_merge(${_infilename} ${_out} --xml-style --utf8)
+
+	add_custom_target(appdata-${_outtarget}
+		DEPENDS ${_out}
+	)
+
+	add_dependencies(appdata-files appdata-${_outtarget})
+
+	install(FILES ${_out}
+		DESTINATION ${SHARE_INSTALL_DIR}/appdata
+	)
+endmacro(add_appdata_file)

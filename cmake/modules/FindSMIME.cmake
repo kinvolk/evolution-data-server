@@ -9,6 +9,7 @@
 #    MANUAL_NSPR_LIBS - if non-empty, then contains manual nspr libraries, used for target_link_libraries() and similar commands
 #    MANUAL_NSS_INCLUDES - if non-empty, then contains manual nss include directory, used for target_include_directories() and similar commands
 #    MANUAL_NSS_LIBS - if non-empty, then contains manual nss libraries, used for target_link_libraries() and similar commands
+#    MOZILLA_NSS_LIB_DIR - a lib directory where Mozilla stores its libraries
 
 include(CheckIncludeFiles)
 include(CheckCSourceCompiles)
@@ -27,6 +28,7 @@ endif(NOT ENABLE_SMIME)
 
 set(mozilla_nspr "")
 set(mozilla_nss "")
+set(MOZILLA_NSS_LIB_DIR "")
 
 # Use pkg-config when none is specified
 if((WITH_NSPR_INCLUDES STREQUAL "") AND (WITH_NSPR_LIBS STREQUAL "") AND (WITH_NSS_INCLUDES STREQUAL "") AND (WITH_NSS_INCLUDES STREQUAL ""))
@@ -47,10 +49,13 @@ if((WITH_NSPR_INCLUDES STREQUAL "") AND (WITH_NSPR_LIBS STREQUAL "") AND (WITH_N
 	endforeach(pkg)
 
 	if((NOT (mozilla_nspr STREQUAL "")) AND (NOT (mozilla_nss STREQUAL "")))
+		pkg_check_variable(_nss_libdir ${mozilla_nss} libdir)
+
 		set(MANUAL_NSPR_INCLUDES "")
 		set(MANUAL_NSPR_LIBS "")
 		set(MANUAL_NSS_INCLUDES "")
 		set(MANUAL_NSS_LIBS "")
+		set(MOZILLA_NSS_LIB_DIR "${_nss_libdir}")
 		return()
 	endif((NOT (mozilla_nspr STREQUAL "")) AND (NOT (mozilla_nss STREQUAL "")))
 endif()
@@ -131,6 +136,11 @@ set(MANUAL_NSS_LIBS "")
 
 if(NOT (WITH_NSS_LIBS STREQUAL ""))
 	set(MANUAL_NSS_LIBS "-L${WITH_NSS_LIBS}")
+	set(MOZILLA_NSS_LIB_DIR "${WITH_NSS_LIBS}")
 endif(NOT (WITH_NSS_LIBS STREQUAL ""))
 
 set(MANUAL_NSS_LIBS "${MANUAL_NSS_LIBS} ${nsslibs} ${MANUAL_NSPR_LIBS}")
+
+if(MOZILLA_NSS_LIB_DIR STREQUAL "")
+	set(MOZILLA_NSS_LIB_DIR "${LIB_INSTALL_DIR}")
+endif(MOZILLA_NSS_LIB_DIR STREQUAL "")
