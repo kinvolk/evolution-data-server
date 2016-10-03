@@ -123,7 +123,7 @@ install(TARGETS ebook-contacts
 )
 
 install(FILES ${HEADERS}
-	DESTINATION ${privincludedir}/libebook
+	DESTINATION ${privincludedir}/libebook-contacts
 )
 
 set(gir_sources ${SOURCES} ${HEADERS})
