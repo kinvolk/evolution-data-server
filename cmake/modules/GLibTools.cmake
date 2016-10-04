@@ -15,6 +15,11 @@
 #        camel-enumtypes.h which will use the CAMEL_ENUMTYPES_H define
 #        and also generates camel-enumtypes.c with the needed code.
 #
+# glib_genmarshal(_output_filename_noext _prefix _marshallist_filename)
+#    runs glib-genmarshal to process ${_marshallist_filename} to ${_output_filename_noext}.c
+#    and ${_output_filename_noext}.h files in the current binary directory, using
+#    the ${_prefix} as the function prefix.
+#
 # gdbus_codegen(_xml _interface_prefix _c_namespace _files_prefix _list_gens)
 #    runs gdbus-codegen to generate GDBus code from _xml file description,
 #    using _interface_prefix, _c_namespace and _files_prefix as arguments.
@@ -131,6 +136,27 @@ GType
 	)
 endfunction(glib_mkenums)
 
+find_program(GLIB_GENMARSHAL glib-genmarshal)
+if(NOT GLIB_GENMARSHAL)
+	message(FATAL_ERROR "Cannot find glib-genmarshal, which is required to build ${PROJECT_NAME}")
+endif(NOT GLIB_GENMARSHAL)
+
+function(glib_genmarshal _output_filename_noext _prefix _marshallist_filename)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.h
+		COMMAND ${GLIB_GENMARSHAL} --header --prefix=${_prefix} "${CMAKE_CURRENT_SOURCE_DIR}/${_marshallist_filename}" >${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.h.tmp
+		COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.h.tmp ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.h
+		DEPENDS ${_marshallist_filename}
+	)
+
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c
+		COMMAND ${CMAKE_COMMAND} -E echo " #include \\\"${_output_filename_noext}.h\\\"" >${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c.tmp
+		COMMAND ${GLIB_GENMARSHAL} --body --prefix=${_prefix} "${CMAKE_CURRENT_SOURCE_DIR}/${_marshallist_filename}" >>${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c.tmp
+		COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c.tmp ${CMAKE_CURRENT_BINARY_DIR}/${_output_filename_noext}.c
+		DEPENDS ${_marshallist_filename}
+	)
+endfunction(glib_genmarshal)
 
 find_program(GDBUS_CODEGEN gdbus-codegen)
 if(NOT GDBUS_CODEGEN)
