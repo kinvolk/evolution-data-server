@@ -54,6 +54,7 @@ add_custom_command(OUTPUT ${disttest_build_dir}/Makefile
 	COMMAND ${CMAKE_COMMAND} -E chdir ${disttest_build_dir} make -j
 
 	DEPENDS dist
+	COMMENT "Building from distribution tarball ${ARCHIVE_FULL_NAME}..."
 )
 
 add_custom_target(distcheck

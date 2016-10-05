@@ -7,6 +7,8 @@
 #
 # The date is expected in a form of YYYY-MM-DD of the current local time.
 # The NEWS line is in form of "PROJECTNAME VERSION DATE".
+#
+# The test can be skipped entirely when SKIP_NEWS_FILE_TEST=1 is set.
 
 FILENAME=$1
 EXPVERSION=$2
@@ -27,13 +29,28 @@ EXPDATE=`date +%Y-%m-%d`
 NEWSVERSION="${NEWSLINE#* }"
 NEWSDATE="${NEWSVERSION#* }"
 NEWSVERSION="${NEWSVERSION% *}"
+SUCCESS=1
 
 if [ "$NEWSVERSION" != "$EXPVERSION" ]; then
 	echo "Read NEWS version '$NEWSVERSION' doesn't match expected version '$EXPVERSION'" 1>&2
-	exit 1
+	SUCCESS=0
 fi
 
 if [ "$NEWSDATE" != "$EXPDATE" ]; then
-	echo "Read NEWS date '$NEWSDATE' doesn't match expected version '$EXPDATE'" 1>&2
+	echo "Read NEWS date '$NEWSDATE' doesn't match expected date '$EXPDATE'" 1>&2
+	SUCCESS=0
+fi
+
+if [ "$SUCCESS" != "1" ]; then
+	if [ "$SKIP_NEWS_FILE_TEST" = "1" ]; then
+		echo "" 1>&2
+		echo "****************************************************************" 1>&2
+		echo "*  Failed NEWS file test ignored due to SKIP_NEWS_FILE_TEST=1  *" 1>&2
+		echo "****************************************************************" 1>&2
+		echo "" 1>&2
+		exit 0
+	else
+		echo "(This test can be skipped when SKIP_NEWS_FILE_TEST=1 is set.)" 1>&2
+	fi
 	exit 1
 fi
