@@ -19,7 +19,7 @@
  *          Tristan Van Berkom <tristanvb@openismus.com>
  */
 
-#include "config.h"
+#include "evolution-data-server-config.h"
 
 #include <string.h>
 #include <sys/stat.h>

@@ -888,10 +888,8 @@ if(ENABLE_VALA_BINDINGS)
 
 endif(ENABLE_VALA_BINDINGS)
 
-# Generate the config.h file
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
-
-add_definitions(-DHAVE_CONFIG_H=1)
+# Generate the ${PROJECT_NAME}-config.h file
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.h)
 
 print_build_options()
 
