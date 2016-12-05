@@ -70,6 +70,7 @@ evolution_source_registry_CPPFLAGS = \
 evolution_source_registry_SOURCES = \
 	$(BUILT_SOURCES) \
 	evolution-source-registry.c \
+	evolution-source-registry-autoconfig.c \
 	evolution-source-registry-migrate-basedir.c \
 	evolution-source-registry-migrate-proxies.c \
 	evolution-source-registry-migrate-sources.c \
